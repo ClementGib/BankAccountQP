@@ -34,10 +34,27 @@ public class BankAccountRepositoryTest {
     @InjectMock
     DtoEntityMapper<BankAccount, BankAccountEntity> bankAccountMapper;
 
+    @Test
+    @Transactional
+    public void shouldReturnAllBankAccounts_whenAccountsFound() {
+        // Arrange
+        Instant date = Instant.now();
+        List<BankAccount> bankAccounts = List.of(createBankAccountUtils(1L, date), createBankAccountUtils(2L, date), createBankAccountUtils(3L, date));
+
+        // Act
+        List<BankAccount> allBankAccounts = bankAccountRepository.getAll();
+
+        int size = allBankAccounts.size();
+        // Assert
+        assertThat(allBankAccounts).isNotEmpty();
+        verify(bankAccountMapper, times(size)).toDto(any(BankAccountEntity.class));
+        verifyNoMoreInteractions(bankAccountMapper);
+    }
+
 
     @Test
     @Transactional
-    public void findById_shouldReturnBankAccount_whenAccountIsFound() {
+    public void shouldReturnBankAccount_whenAccountIsFound() {
         // Arrange
         long accountId = 1L;
         Instant date = Instant.now();
@@ -56,7 +73,7 @@ public class BankAccountRepositoryTest {
     
     @Test
     @Transactional
-    public void findById_shouldReturnEmptyOptional_whenAccountIsNotFound() {
+    public void shouldReturnEmptyOptional_whenAccountIsNotFound() {
         // Act
         Optional<BankAccount> optionalBankAccount = bankAccountRepository.findById(99999L);
 
@@ -70,10 +87,10 @@ public class BankAccountRepositoryTest {
         bankAccount.setId(accountId);
         bankAccount.setType(AccountType.CHECKING);
         bankAccount.setBalance(new Money(new BigDecimal("300")));
-        List<Long> customersId = new ArrayList<>();
+        Set<Long> customersId = new HashSet<>();
         customersId.add(1L);
         bankAccount.setCustomersId(customersId);
-        HashSet<Transaction> transactionHistory = new HashSet<>();
+        Set<Transaction> transactionHistory = new HashSet<>();
         transactionHistory.add(Transaction.builder()
                 .id(2L)
                 .emitterAccountId(5000L)

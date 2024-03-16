@@ -27,9 +27,9 @@ public class BankAccountEntity extends PanacheEntityBase {
     private BigDecimal balance;
 
     @ManyToMany(mappedBy = "accounts", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    private List<CustomerEntity> customers = new ArrayList<>();
+    private Set<CustomerEntity> customers = new HashSet<>();
 
-    @OneToMany(mappedBy = "emitterBankAccountEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "emitterBankAccountEntity", cascade = CascadeType.MERGE)
     @OrderBy("date")
     private Set<TransactionEntity> issuedTransactions = new HashSet<>();
 
@@ -58,11 +58,11 @@ public class BankAccountEntity extends PanacheEntityBase {
         this.balance = balance;
     }
 
-    public List<CustomerEntity> getCustomers() {
+    public Set<CustomerEntity> getCustomers() {
         return customers;
     }
 
-    public void setCustomers(List<CustomerEntity> customers) {
+    public void setCustomers(Set<CustomerEntity> customers) {
         this.customers = customers;
     }
 
@@ -72,11 +72,6 @@ public class BankAccountEntity extends PanacheEntityBase {
 
     public void setIssuedTransactions(Set<TransactionEntity> issuedTransactions) {
         this.issuedTransactions = issuedTransactions;
-    }
-
-    public void addTransaction(TransactionEntity transaction) {
-        this.issuedTransactions.add(transaction);
-        transaction.setEmitterBankAccountEntity(this);
     }
 
     @Override

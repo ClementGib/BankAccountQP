@@ -123,7 +123,7 @@ public class BankAccountMapperTest {
         entity.setId(10L);
         entity.setType(AccountType.CHECKING);
         entity.setBalance(new BigDecimal("1000"));
-        List<CustomerEntity> customers = new ArrayList<>();
+        Set<CustomerEntity> customers = new HashSet<>();
         CustomerEntity customerEntity = createCustomerEntityUtils();
         customers.add(customerEntity);
         entity.setCustomers(customers);
@@ -185,7 +185,7 @@ public class BankAccountMapperTest {
         dto.setId(10L);
         dto.setType(AccountType.CHECKING);
         dto.setBalance(new Money(new BigDecimal("1000")));
-        List<Long> customers = new ArrayList<>();
+        Set<Long> customers = new HashSet<>();
         Customer customer = createCustomerUtils();
         customers.add(customer.getId());
         dto.setCustomersId(customers);
@@ -240,7 +240,7 @@ public class BankAccountMapperTest {
         dto.setId(10L);
         dto.setType(AccountType.CHECKING);
         dto.setBalance(new Money(new BigDecimal("1000")));
-        List<Long> customers = new ArrayList<>();
+        Set<Long> customers = new HashSet<>();
         Customer customer = createCustomerUtils();
         customers.add(customer.getId());
         dto.setCustomersId(customers);

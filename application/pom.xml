@@ -10,12 +10,21 @@
     <artifactId>application</artifactId>
     <dependencies>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.cdx.bas</groupId>
             <artifactId>domain</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-orm</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -81,6 +90,10 @@
             <artifactId>quarkus-panache-mock</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -106,9 +119,6 @@
                     <source>21</source>
                     <target>21</target>
                     <release>21</release>
-                    <compilerArgs>
-                        <arg>--enable-preview</arg>
-                    </compilerArgs>
                     <annotationProcessorPaths>
                         <!-- Your existing annotation processor(s)... -->
                         <path>
@@ -125,6 +135,7 @@
                 <configuration>
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <!--suppress UnresolvedMavenProperty -->
                         <maven.home>${maven.home}</maven.home>
                     </systemPropertyVariables>
                 </configuration>
@@ -143,6 +154,7 @@
                                 <native.image.path>${project.build.directory}/${project.build.finalName}-runner
                                 </native.image.path>
                                 <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <maven.home>${maven.home}</maven.home>
                             </systemPropertyVariables>
                         </configuration>

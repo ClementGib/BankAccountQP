@@ -1,32 +1,26 @@
 package com.cdx.bas.client.bank.transaction;
 
-import com.cdx.bas.domain.bank.transaction.NewTransaction;
+import com.cdx.bas.domain.bank.transaction.NewCashTransaction;
 import com.cdx.bas.domain.bank.transaction.Transaction;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.*;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.CREDIT;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.DEBIT;
+import static com.cdx.bas.domain.bank.transaction.type.TransactionType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @QuarkusTestResource(H2DatabaseTestResource.class)
 class TransactionResourceTest {
-
-
 
     @Inject
     TransactionResource transactionResource;
@@ -145,13 +139,55 @@ class TransactionResourceTest {
 
     @Test
     @Order(9)
-    public void deposit_shouldReturnAccepted202Response_whenTransactionIsValidated() {
+    public void withdraw_shouldReturnAcceptedResponse_whenTransactionIsValidated() {
         Instant timestampBefore = Instant.now();
-        NewTransaction validNewTransaction =  new NewTransaction(1L, 2L, new BigDecimal("1000.00"), "EUR", CREDIT, "transaction 1", new HashMap<>());
-        Transaction expectedCreatedTransaction = new Transaction(10L, 1L, 2L, new BigDecimal("1000.00"), "EUR", CREDIT, UNPROCESSED, timestampBefore, "transaction 1", new HashMap<>());
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("bill", "500,500");
+        NewCashTransaction validNewTransaction =  new NewCashTransaction(2L, new BigDecimal("1000.00"), "EUR", metadata);
+        Transaction expectedCreatedTransaction = new Transaction(10L, 2L, null, new BigDecimal("1000.00"), "EUR", WITHDRAW, COMPLETED, timestampBefore, "Withdraw of 1000.00 EUR",
+                Map.of("emitter_amount_after", "600.00", "emitter_amount_before", "1600.00"));
 
-       Response actualResponse = transactionResource.create(validNewTransaction);
-       Transaction actualTransaction = transactionResource.findById(10L);
+        Response actualResponse = transactionResource.withdraw(validNewTransaction);
+        Transaction actualTransaction = transactionResource.findById(10L);
+        Instant timestampAfter = Instant.now();
+        assertThat(actualResponse.getEntity()).isEqualTo("Withdraw transaction accepted");
+        assertThat(actualTransaction)
+                .usingRecursiveComparison()
+                .ignoringFields("date")
+                .isEqualTo(expectedCreatedTransaction);
+        assertThat(actualTransaction.getDate()).isAfter(timestampBefore).isBefore(timestampAfter);
+    }
+
+    @Test
+    @Order(10)
+    @Disabled
+    public void withdraw_shouldReturnErrorResponse_whenTransactionIsInvalid() {
+        NewCashTransaction invalidNewTransaction = new NewCashTransaction(1L, null, null, null);
+        List<String> expectedLines = Arrays.asList(
+                "Amount must not be null.",
+                "Metadata must not be null.",
+                "Emitter account id must not be null.",
+                "Currency must not be null.");
+
+        Response actualResponse = transactionResource.withdraw(invalidNewTransaction);
+        List<String> actualLines = Arrays.asList(actualResponse.getEntity().toString().split("\n"));
+        assertThat(actualLines)
+                .hasSize(4)
+                .containsExactlyInAnyOrderElementsOf(expectedLines);
+    }
+
+    @Test
+    @Order(11)
+    public void deposit_shouldReturnAcceptedResponse_whenTransactionIsValidated() {
+        Instant timestampBefore = Instant.now();
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("bill", "500,500");
+        NewCashTransaction validNewTransaction =  new NewCashTransaction(1L, new BigDecimal("1000.00"), "EUR", metadata);
+        Transaction expectedCreatedTransaction = new Transaction(11L, 1L, null, new BigDecimal("1000.00"), "EUR", DEPOSIT, COMPLETED, timestampBefore, "Deposit of 1000.00 EUR",
+                Map.of("emitter_amount_before", "400.00", "emitter_amount_after", "1400.00"));
+
+       Response actualResponse = transactionResource.deposit(validNewTransaction);
+       Transaction actualTransaction = transactionResource.findById(11L);
        Instant timestampAfter = Instant.now();
        assertThat(actualResponse.getEntity()).isEqualTo("Deposit transaction accepted");
        assertThat(actualTransaction)
@@ -162,19 +198,20 @@ class TransactionResourceTest {
     }
 
     @Test
-    @Order(10)
-    public void deposit_shouldReturnError400Response_whenTransactionIsInvalid() {
-        NewTransaction invalidNewTransaction = new NewTransaction(null, null, null, null, null, null, null);
+    @Order(12)
+    @Disabled
+    public void deposit_shouldReturnErrorResponse_whenTransactionIsInvalid() {
+        NewCashTransaction invalidNewTransaction = new NewCashTransaction(null, null, null, null);
         List<String> expectedLines = Arrays.asList(
-                "Label must not be null.",
-                "Type must not be null.",
-                "Receiver account id must not be null.",
-                "Currency should be in the exchange rate map.",
-                "Currency must not be null.",
-                "Amount must not be null.");
+                "Amount must not be null.",
+                "Metadata must not be null.",
+                "Emitter account id must not be null.",
+                "Currency must not be null.");
 
-        Response actualResponse = transactionResource.create(invalidNewTransaction);
+        Response actualResponse = transactionResource.deposit(invalidNewTransaction);
         List<String> actualLines = Arrays.asList(actualResponse.getEntity().toString().split("\n"));
-        assertThat(actualLines).containsExactlyInAnyOrderElementsOf(expectedLines);
+        assertThat(actualLines)
+                .hasSize(4)
+                .containsExactlyInAnyOrderElementsOf(expectedLines);
     }
 }

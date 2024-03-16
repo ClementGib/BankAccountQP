@@ -18,7 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
-class TransactionStatusServiceImplTest {
+class TransactionStatusServiceTest {
 
     @Inject
     TransactionStatusServicePort transactionStatusServicePort;
@@ -73,7 +73,7 @@ class TransactionStatusServiceImplTest {
 
         when(transactionPersistencePort.update(expectedTransaction)).thenReturn(expectedTransaction);
 
-        Transaction actualTransaction = transactionStatusServicePort.setStatus(transaction, ERROR, metadata);
+        Transaction actualTransaction = transactionStatusServicePort.saveStatus(transaction, ERROR, metadata);
         assertThat(actualTransaction)
                 .extracting(Transaction::getStatus, Transaction::getMetadata)
                 .containsExactly(ERROR, metadata);
@@ -84,7 +84,7 @@ class TransactionStatusServiceImplTest {
     @Transactional
     public void setStatus_shouldThrowTransactionException_whenTransactionIsNull() {
         try {
-            transactionStatusServicePort.setStatus(null, COMPLETED, new HashMap<>());
+            transactionStatusServicePort.saveStatus(null, COMPLETED, new HashMap<>());
         } catch (TransactionException transactionException) {
             assertThat(transactionException.getMessage()).isEqualTo("Transaction is null.");
         }

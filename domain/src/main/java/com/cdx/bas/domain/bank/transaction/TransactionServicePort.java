@@ -1,5 +1,8 @@
 package com.cdx.bas.domain.bank.transaction;
 
+import jakarta.transaction.Transactional;
+
+import java.util.Map;
 import java.util.Set;
 
 public interface TransactionServicePort {
@@ -12,6 +15,23 @@ public interface TransactionServicePort {
     public Set<Transaction> getAll();
 
     /**
+     * Create new transaction
+     *
+     * @param transaction to create
+     * @param metadata with detail about the transaction
+     */
+    void create(Transaction transaction, Map<String, String> metadata);
+
+    /**
+     * Update existing transaction
+     *
+     * @param transaction to update
+     * @param metadata with detail about the transaction
+     */
+    void update(Transaction transaction, Map<String, String> metadata);
+
+
+    /**
      * find all transactions by status
      *
      * @return Set with all the transactions by status
@@ -20,19 +40,11 @@ public interface TransactionServicePort {
 
 
     /**
-     * add current transaction
+     * add digital transaction
      *
-     * @param newTransaction to add
+     * @param newDigitalTransaction to add
      */
-    void createTransaction(NewTransaction newTransaction);
-
-    /**
-     * merge two transactions
-     *
-     * @param oldTransaction to merge with next
-     * @param newTransaction to merge with previous
-     */
-    Transaction mergeTransactions(Transaction oldTransaction, Transaction newTransaction);
+    void createDigitalTransaction(NewDigitalTransaction newDigitalTransaction);
 
     /**
      * find Transaction from id
@@ -43,9 +55,23 @@ public interface TransactionServicePort {
     Transaction findTransaction(Long transactionId);
 
     /**
-     * Process the transaction depending on its type
+     * Process digital transaction
      * 
-     * @param transaction to process
+     * @param digitalTransaction to process
      */
-    void process(Transaction transaction);
+    void processDigitalTransaction(Transaction digitalTransaction);
+
+    /**
+     * Process deposit of cash
+     *
+     * @param newCashTransaction with detail of cash transaction
+     */
+    void deposit(NewCashTransaction newCashTransaction);
+
+    /**
+     * Process withdraw of cash
+     *
+     * @param newCashTransaction with detail of cash transaction
+     */
+    void withdraw(NewCashTransaction newCashTransaction);
 }

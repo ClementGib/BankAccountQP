@@ -1,20 +1,18 @@
 package com.cdx.bas.application.bank.customer;
 
 
-import com.cdx.bas.application.mapper.DtoEntityMapper;
 import com.cdx.bas.domain.bank.customer.Customer;
 import com.cdx.bas.domain.bank.customer.CustomerPersistencePort;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.jboss.logging.Logger;
 
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static jakarta.transaction.Transactional.TxType.MANDATORY;
 
 /***
  * persistence implementation for Customer entities
@@ -26,12 +24,16 @@ import static jakarta.transaction.Transactional.TxType.MANDATORY;
 public class CustomerRepository implements CustomerPersistencePort, PanacheRepositoryBase<CustomerEntity, Long> {
 	
     private static final Logger logger = Logger.getLogger(CustomerRepository.class);
-    
+
+    private final CustomerMapper customerMapper;
+
     @Inject
-    CustomerMapper customerMapper;
+    public CustomerRepository(CustomerMapper customerMapper) {
+        this.customerMapper = customerMapper;
+    }
 
     @Override
-    @Transactional(value = MANDATORY)
+    @Transactional
     public Set<Customer> getAll() {
         return findAll().stream()
                 .map(customer -> customerMapper.toDto(customer))

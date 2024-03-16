@@ -73,16 +73,15 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
 
     @Override
     @Transactional
-    public Transaction create(Transaction transaction) {
+    public void create(Transaction transaction) {
         entityManager.persist(transactionMapper.toEntity(transaction));
         logger.info("Transaction from " + transaction.getEmitterAccountId() + " to " + transaction.getReceiverAccountId() + " created");
-        return transaction;
     }
 
     @Override
     @Transactional
     public Transaction update(Transaction transaction) {
-        getEntityManager().merge(transactionMapper.toEntity(transaction));
+        entityManager.merge(transactionMapper.toEntity(transaction));
         logger.info("Transaction " + transaction.getId() + " updated");
         return transaction;
     }

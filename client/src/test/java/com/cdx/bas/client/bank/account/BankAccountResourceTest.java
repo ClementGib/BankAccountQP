@@ -1,6 +1,7 @@
 package com.cdx.bas.client.bank.account;
 
 import com.cdx.bas.domain.bank.account.BankAccount;
+import com.cdx.bas.domain.bank.account.BankAccountException;
 import com.cdx.bas.domain.bank.account.checking.CheckingBankAccount;
 import com.cdx.bas.domain.bank.account.mma.MMABankAccount;
 import com.cdx.bas.domain.bank.account.saving.SavingBankAccount;
@@ -15,13 +16,11 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.cdx.bas.domain.bank.transaction.type.TransactionType.CREDIT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @QuarkusTest
 @QuarkusTestResource(H2DatabaseTestResource.class)
@@ -33,14 +32,14 @@ class BankAccountResourceTest {
     @Test
     public void getAll_shouldReturnAllBankAccount() {
         List<BankAccount> expectedCustomers = List.of(
-                new CheckingBankAccount(1L, Money.of(new BigDecimal("400.00")), List.of(1L), new HashSet<>()),
-                new CheckingBankAccount(2L, Money.of(new BigDecimal("1600.00")), List.of(2L, 3L), new HashSet<>()),
-                new SavingBankAccount(3L, Money.of(new BigDecimal("19200.00")), List.of(4L), new HashSet<>()),
-                new CheckingBankAccount(4L, Money.of(new BigDecimal("500.00")), List.of(3L), new HashSet<>()),
-                new MMABankAccount(5L, Money.of(new BigDecimal("65000.00")), List.of(1L), new HashSet<>()),
-                new SavingBankAccount(6L, Money.of(new BigDecimal("999.00")), List.of(5L), new HashSet<>()),
-                new CheckingBankAccount(7L, Money.of(new BigDecimal("0.00")), List.of(6L), new HashSet<>()),
-                new SavingBankAccount(8L, Money.of(new BigDecimal("200000.00")), List.of(6L), new HashSet<>())
+                new CheckingBankAccount(1L, Money.of(new BigDecimal("400.00")), Set.of(1L), new HashSet<>()),
+                new CheckingBankAccount(2L, Money.of(new BigDecimal("1600.00")), Set.of(2L, 3L), new HashSet<>()),
+                new SavingBankAccount(3L, Money.of(new BigDecimal("19200.00")), Set.of(4L), new HashSet<>()),
+                new CheckingBankAccount(4L, Money.of(new BigDecimal("500.00")), Set.of(3L), new HashSet<>()),
+                new MMABankAccount(5L, Money.of(new BigDecimal("65000.00")), Set.of(1L), new HashSet<>()),
+                new SavingBankAccount(6L, Money.of(new BigDecimal("999.00")), Set.of(5L), new HashSet<>()),
+                new CheckingBankAccount(7L, Money.of(new BigDecimal("0.00")), Set.of(6L), new HashSet<>()),
+                new SavingBankAccount(8L, Money.of(new BigDecimal("200000.00")), Set.of(6L), new HashSet<>())
         );
 
         List<BankAccount> actualTransactions = bankAccountResource.getAll();
@@ -56,7 +55,7 @@ class BankAccountResourceTest {
         BankAccount expectedBankAccount = new SavingBankAccount();
         expectedBankAccount.setId(6L);
         expectedBankAccount.setBalance(Money.of(new BigDecimal("999.00")));
-        expectedBankAccount.setCustomersId(Collections.singletonList(5L));
+        expectedBankAccount.setCustomersId(Set.of(5L));
 
         BankAccount actualBankAccount = bankAccountResource.findById(6);
         assertThat(actualBankAccount)
@@ -91,7 +90,7 @@ class BankAccountResourceTest {
                 .date(Instant.parse("2024-07-10T14:00:00Z"))
                 .label("transaction 2")
                 .build();
-        Set<Transaction> issuedTransaction = new HashSet<>();
+        List<Transaction> issuedTransaction = new ArrayList<>();
         issuedTransaction.add(transaction1);
         issuedTransaction.add(transaction2);
 
@@ -107,7 +106,11 @@ class BankAccountResourceTest {
     
     @Test
     public void findById_shouldReturnEmptyTransaction_whenTransactionNotFound() {
-        BankAccount actualTransaction = bankAccountResource.findById(99L);
-        assertThat(actualTransaction).isNull();
+        try {
+            bankAccountResource.findById(99L);
+            fail();
+        } catch (BankAccountException exception) {
+            assertThat(exception.getMessage()).isEqualTo("Missing bank account with id: 99");
+        }
     }
 }

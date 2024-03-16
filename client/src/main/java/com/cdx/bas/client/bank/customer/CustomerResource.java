@@ -15,14 +15,16 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.Optional;
 import java.util.Set;
 
-import static jakarta.transaction.Transactional.TxType.REQUIRED;
-
 @Path("/customers")
 @ApplicationScoped
 public class CustomerResource {
 
+    private final CustomerPersistencePort customerPersistencePort;
+
     @Inject
-    CustomerPersistencePort customerPersistencePort;
+    public CustomerResource(CustomerPersistencePort customerPersistencePort) {
+        this.customerPersistencePort = customerPersistencePort;
+    }
 
     @GET
     @Transactional

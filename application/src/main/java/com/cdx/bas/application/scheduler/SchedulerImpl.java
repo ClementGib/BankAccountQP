@@ -7,6 +7,7 @@ import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import lombok.Getter;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -20,11 +21,14 @@ public class SchedulerImpl implements Scheduler {
 
     private static final PriorityQueue<Transaction> transactionQueue = new PriorityQueue<>();
 
-    @Inject
-    TransactionServicePort transactionService;
+    private final TransactionServicePort transactionService;
+    private final TransactionPersistencePort transactionRepository;
 
     @Inject
-    TransactionPersistencePort transactionRepository;
+    public SchedulerImpl(TransactionPersistencePort transactionRepository, TransactionServicePort transactionService) {
+        this.transactionRepository = transactionRepository;
+        this.transactionService = transactionService;
+    }
 
     @ConfigProperty(name = "scheduler.activation", defaultValue = "true")
     boolean activation;
@@ -32,7 +36,7 @@ public class SchedulerImpl implements Scheduler {
     @ConfigProperty(name = "scheduler.every", defaultValue = "30s")
     String every;
 
-    public PriorityQueue<Transaction> getTransactionQueue() {
+    private static PriorityQueue<Transaction> getTransactionQueue() {
         return transactionQueue;
     }
 
@@ -46,9 +50,9 @@ public class SchedulerImpl implements Scheduler {
             }
 
             logger.info("Queue size: " + transactionQueue.size());
-            while(!getTransactionQueue().isEmpty()) {
+            while (!getTransactionQueue().isEmpty()) {
                 Transaction currentTransation = getTransactionQueue().poll();
-                transactionService.process(currentTransation);
+                transactionService.processDigitalTransaction(currentTransation);
             }
             logger.info("Scheduler end");
         }

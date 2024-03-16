@@ -30,16 +30,12 @@ public abstract class BankAccount {
     
 	@NotNull(message="customersId must not be null.")
 	@Size(min=1, message="customersId must contains at least 1 customer id.")
-	protected List<Long> customersId = new ArrayList<>();
+	protected Set<Long> customersId = new HashSet<>();
 
     @NotNull(message="issued transactions must not be null.")
-    private Set<Transaction> issuedTransactions = new HashSet<>();
+    protected Set<Transaction> issuedTransactions = new HashSet<>();
     
     public BankAccount(AccountType type) {
         this.type = type;
-    }
-
-    public void addTransaction(Transaction transaction) {
-        issuedTransactions.add(transaction);
     }
 }

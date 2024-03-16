@@ -32,7 +32,7 @@ public interface BankAccountPersistencePort {
     /**
      * update the current BankAccount
      * 
-     * @param BankAccount to update
+     * @param bankAccount to update
      * @return updated BankAccount
      */
     public BankAccount update(BankAccount bankAccount);
