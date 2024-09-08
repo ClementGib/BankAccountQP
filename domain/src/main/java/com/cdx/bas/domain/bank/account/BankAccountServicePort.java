@@ -28,7 +28,7 @@ public interface BankAccountServicePort {
      * @param transaction to add
      * @return bank account
      */
-    BankAccount addTransaction(Transaction transaction, BankAccount bankAccount);
+    BankAccount putTransaction(Transaction transaction, BankAccount bankAccount);
 
     /**
      * add transaction to bank account
@@ -37,7 +37,7 @@ public interface BankAccountServicePort {
      * @param emitterBankAccount which emits transaction
      * @param receiverBankAccount which receives transaction
      */
-    void transferAmountBetweenAccounts(Transaction transaction, BankAccount emitterBankAccount, BankAccount receiverBankAccount) ;
+    void creditAmountToAccounts(Transaction transaction, BankAccount emitterBankAccount, BankAccount receiverBankAccount) ;
 
     /**
      * updated bank account
@@ -46,4 +46,8 @@ public interface BankAccountServicePort {
      * @return bank account updated
      */
     BankAccount updateBankAccount(BankAccount bankAccount);
+
+    void depositAmountToAccount(Transaction transaction, BankAccount emitterBankAccount);
+
+    void withdrawAmountToAccount(Transaction transaction, BankAccount emitterBankAccount);
 }

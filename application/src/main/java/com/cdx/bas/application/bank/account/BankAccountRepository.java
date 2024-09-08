@@ -1,11 +1,14 @@
 package com.cdx.bas.application.bank.account;
 
 import com.cdx.bas.domain.bank.account.BankAccount;
+import com.cdx.bas.domain.bank.account.BankAccountException;
 import com.cdx.bas.domain.bank.account.BankAccountPersistencePort;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import io.quarkus.panache.common.Sort;
-import jakarta.enterprise.context.RequestScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.TransactionManager;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,19 +17,34 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.cdx.bas.domain.text.MessageConstants.BANK_ACCOUNT_START;
+import static jakarta.transaction.Transactional.TxType.REQUIRED;
+
 /***
  * persistence implementation for BankAccount entities
  * 
  * @author Clément Gibert
  *
  */
-@RequestScoped
+@ApplicationScoped
 public class BankAccountRepository implements BankAccountPersistencePort, PanacheRepositoryBase<BankAccountEntity, Long> {
     
     private static final Logger logger = LoggerFactory.getLogger(BankAccountRepository.class);
-    
-    @Inject
+
     BankAccountMapper bankAccountMapper;
+
+    TransactionManager transactionManager;
+
+    EntityManager entityManager;
+
+    @Inject
+    public BankAccountRepository(BankAccountMapper bankAccountMapper,
+                                 TransactionManager transactionManager,
+                                 EntityManager entityManager) {
+        this.bankAccountMapper = bankAccountMapper;
+        this.transactionManager = transactionManager;
+        this.entityManager = entityManager;
+    }
 
     @Override
     @Transactional
@@ -45,16 +63,24 @@ public class BankAccountRepository implements BankAccountPersistencePort, Panach
     @Override
     @Transactional
     public BankAccount create(BankAccount bankAccount) {
-        getEntityManager().persist(bankAccountMapper.toEntity(bankAccount));
-        logger.info("BankAccount " + bankAccount.getId() + " created");
+        entityManager.persist(bankAccountMapper.toEntity(bankAccount));
+        logger.info(BANK_ACCOUNT_START + bankAccount.getId() + " created");
         return bankAccount;
     }
+
     @Override
     @Transactional
     public BankAccount update(BankAccount bankAccount) {
-        bankAccount = bankAccountMapper.toDto(getEntityManager().merge(bankAccountMapper.toEntity(bankAccount)));
-        logger.info("BankAccount " + bankAccount.getId() + " updated");
-        return bankAccount;
+        try {
+            BankAccountEntity entity = bankAccountMapper.toEntity(bankAccount);
+            getEntityManager();
+            BankAccountEntity merge = entityManager.merge(entity);
+            bankAccount = bankAccountMapper.toDto(merge);
+            logger.info(BANK_ACCOUNT_START + bankAccount.getId() + " updated");
+            return bankAccount;
+        } catch (UnsupportedOperationException exception) {
+            throw new BankAccountException("invalid", exception);
+        }
     }
     
     @Override

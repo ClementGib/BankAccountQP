@@ -12,19 +12,23 @@ import com.cdx.bas.domain.bank.account.BankAccountFactory;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 
-import java.util.HashSet;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequestScoped
 public class BankAccountMapper implements DtoEntityMapper<BankAccount, BankAccountEntity> {
 
     @Inject
+    public BankAccountMapper(CustomerRepository customerRepository,
+                             BankAccountRepository bankAccountRepository,
+                             TransactionMapper transactionMapper) {
+        this.customerRepository = customerRepository;
+        this.bankAccountRepository = bankAccountRepository;
+        this.transactionMapper = transactionMapper;
+    }
+
     CustomerRepository customerRepository;
-    @Inject
     BankAccountRepository bankAccountRepository;
-    @Inject
     TransactionMapper transactionMapper;
 
     @Override
@@ -40,10 +44,11 @@ public class BankAccountMapper implements DtoEntityMapper<BankAccount, BankAccou
 
         dto.setCustomersId(entity.getCustomers().stream()
                 .map(CustomerEntity::getId)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
 
         dto.setIssuedTransactions(entity.getIssuedTransactions().stream()
                 .map(transactionMapper::toDto)
+//                .collect(Collectors.toSet(ArrayList::new)));
                 .collect(Collectors.toSet()));
 
         return dto;
@@ -69,17 +74,15 @@ public class BankAccountMapper implements DtoEntityMapper<BankAccount, BankAccou
         entity.setCustomers(dto.getCustomersId().stream()
                 .map(customerId -> customerRepository.findByIdOptional(customerId)
                         .orElseThrow(() -> new NoSuchElementException("Customer entity not found for id: " + customerId)))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
 
         Set<TransactionEntity> newIssuedTransactions = new HashSet<>();
         for (Transaction issuedTransactionDto : dto.getIssuedTransactions()) {
             TransactionEntity newIssuedTransactionEntity = transactionMapper.toEntity(issuedTransactionDto);
-            newIssuedTransactionEntity.setEmitterBankAccountEntity(entity);
             newIssuedTransactions.add(newIssuedTransactionEntity);
         }
 
-        entity.getIssuedTransactions().clear();
-        entity.getIssuedTransactions().addAll(newIssuedTransactions);
+        entity.setIssuedTransactions(newIssuedTransactions);
         return entity;
     }
 }

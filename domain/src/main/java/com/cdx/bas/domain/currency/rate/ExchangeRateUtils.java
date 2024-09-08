@@ -34,7 +34,8 @@ public class ExchangeRateUtils {
      * @return euro amount
      */
     public static BigDecimal getEuroAmountFrom(String currency, BigDecimal amount) throws CurrencyException {
-        return new BigDecimal(amount.doubleValue() * getEuroExchangeRate(currency));
+        double value = amount.doubleValue() * getEuroExchangeRate(currency);
+        return new BigDecimal(String.valueOf(value));
     }
 
 

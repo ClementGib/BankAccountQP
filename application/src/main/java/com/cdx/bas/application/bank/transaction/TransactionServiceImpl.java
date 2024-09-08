@@ -3,21 +3,21 @@ package com.cdx.bas.application.bank.transaction;
 import com.cdx.bas.domain.bank.transaction.*;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import com.cdx.bas.domain.bank.transaction.type.TransactionTypeProcessingServicePort;
-import com.cdx.bas.domain.bank.transaction.validation.TransactionValidator;
-import jakarta.enterprise.context.RequestScoped;
+import com.cdx.bas.domain.bank.transaction.validation.validator.TransactionValidator;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.StringUtils;
 
-import java.time.Clock;
+import java.util.Map;
 import java.util.Set;
 
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.CREDIT;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.DEPOSIT;
+import static com.cdx.bas.domain.bank.transaction.type.TransactionType.*;
+import static com.cdx.bas.domain.text.MessageConstants.DEPOSIT_OF_CONTENT;
+import static com.cdx.bas.domain.text.MessageConstants.WITHDRAW_OF_CONTENT;
 
-@RequestScoped
+@ApplicationScoped
 public class TransactionServiceImpl implements TransactionServicePort {
-
-    private final Clock clock;
 
     private final TransactionPersistencePort transactionRepository;
 
@@ -28,18 +28,30 @@ public class TransactionServiceImpl implements TransactionServicePort {
     @Inject
     public TransactionServiceImpl(TransactionPersistencePort transactionRepository,
                                   TransactionValidator transactionValidator,
-                                  TransactionTypeProcessingServicePort transactionTypeProcessingService,
-                                  Clock clock) {
+                                  TransactionTypeProcessingServicePort transactionTypeProcessingService) {
         this.transactionRepository = transactionRepository;
         this.transactionValidator = transactionValidator;
         this.transactionTypeProcessingService = transactionTypeProcessingService;
-        this.clock = clock;
     }
 
     @Override
     @Transactional
     public Set<Transaction> getAll() {
         return transactionRepository.getAll();
+    }
+
+    @Override
+    @Transactional(value = Transactional.TxType.REQUIRES_NEW)
+    public void create(Transaction transaction, Map<String, String> metadata) {
+        transaction.setMetadata(metadata);
+        transactionRepository.create(transaction);
+    }
+
+    @Override
+    @Transactional(value = Transactional.TxType.REQUIRES_NEW)
+    public void update(Transaction transaction, Map<String, String> metadata) {
+        transaction.getMetadata().putAll(metadata);
+        transactionRepository.update(transaction);
     }
 
     @Override
@@ -51,20 +63,10 @@ public class TransactionServiceImpl implements TransactionServicePort {
 
     @Override
     @Transactional
-    public void createTransaction(NewTransaction newTransaction) throws TransactionException {
-        Transaction transactionToCreate = Transaction.builder()
-                .emitterAccountId(newTransaction.emitterAccountId())
-                .receiverAccountId(newTransaction.receiverAccountId())
-                .amount(newTransaction.amount())
-                .currency(newTransaction.currency())
-                .type(newTransaction.type())
-                .status(TransactionStatus.UNPROCESSED)
-                .date(clock.instant())
-                .label(newTransaction.label())
-                .metadata(newTransaction.metadata())
-                .build();
-        transactionValidator.validateNewTransaction(transactionToCreate);
-        transactionRepository.create(transactionToCreate);
+    public void createDigitalTransaction(NewDigitalTransaction newDigitalTransaction) throws TransactionException {
+        Transaction digitalTransaction = TransactionUtils.getNewDigitalTransaction(newDigitalTransaction);
+        transactionValidator.validateNewDigitalTransaction(digitalTransaction);
+        transactionRepository.create(digitalTransaction);
     }
 
     @Override
@@ -74,26 +76,30 @@ public class TransactionServiceImpl implements TransactionServicePort {
     }
 
     @Override
-    public void process(Transaction transaction) {
-        if (CREDIT.equals(transaction.getType())) {
-            transactionTypeProcessingService.credit(transaction);
-        } else if (DEPOSIT.equals(transaction.getType())) {
-            transactionTypeProcessingService.deposit(transaction);
+    @Transactional
+    public void processDigitalTransaction(Transaction digitalTransaction) {
+        if (CREDIT.equals(digitalTransaction.getType())) {
+            transactionTypeProcessingService.credit(digitalTransaction);
+        } else if (DEPOSIT.equals(digitalTransaction.getType())) {
+            transactionTypeProcessingService.deposit(digitalTransaction);
         }
     }
 
     @Override
-    public Transaction mergeTransactions(Transaction oldTransaction, Transaction newTransaction){
-        oldTransaction.setId(newTransaction.getId());
-        oldTransaction.setEmitterAccountId(newTransaction.getEmitterAccountId());
-        oldTransaction.setReceiverAccountId(newTransaction.getReceiverAccountId());
-        oldTransaction.setAmount(newTransaction.getAmount());
-        oldTransaction.setCurrency(newTransaction.getCurrency());
-        oldTransaction.setType(newTransaction.getType());
-        oldTransaction.setStatus(newTransaction.getStatus());
-        oldTransaction.setDate(newTransaction.getDate());
-        oldTransaction.setLabel(newTransaction.getLabel());
-        oldTransaction.setMetadata(newTransaction.getMetadata());
-        return oldTransaction;
+    @Transactional
+    public void deposit(NewCashTransaction newDepositTransaction) {
+        Transaction depositTransaction = TransactionUtils.getNewCashTransaction(newDepositTransaction);
+        depositTransaction.setType(DEPOSIT);
+        depositTransaction.setLabel(DEPOSIT_OF_CONTENT + newDepositTransaction.amount() + StringUtils.SPACE + newDepositTransaction.currency());
+        transactionTypeProcessingService.deposit(depositTransaction);
+    }
+
+    @Override
+    @Transactional
+    public void withdraw(NewCashTransaction newWithdrawTransaction) {
+        Transaction withdrawTransaction = TransactionUtils.getNewCashTransaction(newWithdrawTransaction);
+        withdrawTransaction.setType(WITHDRAW);
+        withdrawTransaction.setLabel(WITHDRAW_OF_CONTENT + newWithdrawTransaction.amount() + StringUtils.SPACE + newWithdrawTransaction.currency());
+        transactionTypeProcessingService.withdraw(withdrawTransaction);
     }
 }

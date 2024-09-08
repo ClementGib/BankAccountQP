@@ -32,7 +32,7 @@ public class MMABankAccount extends BankAccount {
         super(MMA);
     }
 
-    public MMABankAccount(Long id, Money balance, List<Long> customersId, Set<Transaction> issuedTransactions) {
+    public MMABankAccount(Long id, Money balance, Set<Long> customersId, Set<Transaction> issuedTransactions) {
         super(id, MMA, balance, customersId, issuedTransactions);
     }
 }

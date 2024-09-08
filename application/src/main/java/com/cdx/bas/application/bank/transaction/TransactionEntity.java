@@ -29,8 +29,8 @@ public class TransactionEntity extends PanacheEntityBase {
     @JoinColumn(name = "emitter_account_id", nullable = false)
     private BankAccountEntity emitterBankAccountEntity;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "receiver_account_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receiver_account_id")
     private BankAccountEntity receiverBankAccountEntity;
 
     @Column(name = "amount", nullable = false)

@@ -32,7 +32,7 @@ public class CheckingBankAccount extends BankAccount {
         super(CHECKING);
     }
 
-    public CheckingBankAccount(Long id, Money balance, List<Long> customersId, Set<Transaction> issuedTransactions) {
+    public CheckingBankAccount(Long id, Money balance, Set<Long> customersId, Set<Transaction> issuedTransactions) {
         super(id, CHECKING, balance, customersId, issuedTransactions);
     }
 

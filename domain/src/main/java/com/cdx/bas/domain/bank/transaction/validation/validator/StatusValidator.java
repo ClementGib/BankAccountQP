@@ -1,4 +1,4 @@
-package com.cdx.bas.domain.bank.transaction.validation;
+package com.cdx.bas.domain.bank.transaction.validation.validator;
 
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import jakarta.validation.ConstraintValidator;

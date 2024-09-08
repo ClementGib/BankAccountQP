@@ -1,5 +1,6 @@
 package com.cdx.bas.client.bank.transaction;
 
+import com.cdx.bas.domain.DomainException;
 import com.cdx.bas.domain.bank.transaction.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -23,6 +24,10 @@ public class TransactionResource implements TransactionControllerPort {
     private static final Logger logger = LoggerFactory.getLogger(TransactionResource.class);
 
     @Inject
+    public TransactionResource(TransactionServicePort transactionServicePort) {
+        this.transactionServicePort = transactionServicePort;
+    }
+
     TransactionServicePort transactionServicePort;
 
     @GET
@@ -57,6 +62,54 @@ public class TransactionResource implements TransactionControllerPort {
     }
 
     @POST
+    @Path("/digital")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Add transaction", description = "Returns acceptance information about the added transaction")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "New transaction accepted"),
+            @APIResponse(responseCode = "400", description = "Transaction invalid check error details"),
+            @APIResponse(responseCode = "500", description = "Unexpected error happened")
+    })
+    @Transactional
+    @Override
+    public Response addDigitalTransaction(NewDigitalTransaction newTransaction) {
+        try {
+            transactionServicePort.createDigitalTransaction(newTransaction);
+            return Response.status(Response.Status.ACCEPTED).entity("Digital transaction accepted").build();
+        } catch (DomainException exception) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
+        } catch (Exception exception) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unexpected error happened").build();
+        }
+    }
+
+    @POST
+    @Path("/withdraw")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Add withdraw transaction", description = "Returns acceptance information about the added transaction")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "New transaction accepted"),
+            @APIResponse(responseCode = "400", description = "Transaction invalid check error details"),
+            @APIResponse(responseCode = "500", description = "Unexpected error happened")
+    })
+    @Transactional
+    @Override
+    public Response withdraw(NewCashTransaction newWithdrawTransaction) {
+        try {
+            transactionServicePort.withdraw(newWithdrawTransaction);
+            return Response.status(Response.Status.ACCEPTED).entity("Withdraw transaction accepted").build();
+        } catch (DomainException exception) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
+        } catch (Exception exception) {
+            logger.error("Unexpected error happened:&", exception.getCause());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unexpected error happened: ").build();
+        }
+    }
+
+    @POST
+    @Path("/deposit")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Add deposit transaction", description = "Returns acceptance information about the added transaction")
@@ -67,12 +120,12 @@ public class TransactionResource implements TransactionControllerPort {
     })
     @Transactional
     @Override
-    public Response create(NewTransaction newTransaction) {
+    public Response deposit(NewCashTransaction newDepositTransaction) {
         try {
-            transactionServicePort.createTransaction(newTransaction);
+            transactionServicePort.deposit(newDepositTransaction);
             return Response.status(Response.Status.ACCEPTED).entity("Deposit transaction accepted").build();
-        } catch (TransactionException transactionException) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(transactionException.getMessage()).build();
+        } catch (DomainException exception) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
         } catch (Exception exception) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unexpected error happened").build();
         }

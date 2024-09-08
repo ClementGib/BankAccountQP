@@ -30,7 +30,7 @@ public class ExchangeRateUtilsTest {
 
         BigDecimal euroAmount = ExchangeRateUtils.getEuroAmountFrom(currency, amount);
 
-        assertThat(euroAmount).isEqualTo(new BigDecimal(1000));
+        assertThat(euroAmount).isEqualTo(new BigDecimal("1000.0"));
     }
 
     @Test
@@ -40,7 +40,7 @@ public class ExchangeRateUtilsTest {
 
         BigDecimal euroAmount = ExchangeRateUtils.getEuroAmountFrom(currency, amount);
 
-        assertThat(euroAmount).isEqualTo(new BigDecimal(158180));
+        assertThat(euroAmount).isEqualTo(new BigDecimal("158180.0"));
     }
 
     @Test

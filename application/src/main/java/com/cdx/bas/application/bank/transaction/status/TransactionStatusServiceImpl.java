@@ -13,7 +13,6 @@ import java.util.Map;
 
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.OUTSTANDING;
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
-import static jakarta.transaction.Transactional.TxType.MANDATORY;
 
 @RequestScoped
 public class TransactionStatusServiceImpl implements TransactionStatusServicePort {
@@ -22,7 +21,7 @@ public class TransactionStatusServiceImpl implements TransactionStatusServicePor
     TransactionRepository transactionPersistencePort;
 
     @Override
-    @Transactional(value = MANDATORY)
+    @Transactional
     public Transaction setAsOutstanding(Transaction transaction) throws TransactionException {
         if (UNPROCESSED.equals(transaction.getStatus())) {
             transaction.setStatus(OUTSTANDING);
@@ -33,13 +32,19 @@ public class TransactionStatusServiceImpl implements TransactionStatusServicePor
     }
 
     @Override
-    @Transactional(value = MANDATORY)
-    public Transaction setStatus(Transaction transaction, TransactionStatus status, Map<String, String> metadata) throws TransactionException {
+    @Transactional
+    public Transaction setStatus(Transaction transaction, TransactionStatus status, Map<String, String> metadata) {
         if (transaction == null) {
             throw new TransactionException("Transaction is null.");
         }
         transaction.setStatus(status);
         transaction.setMetadata(metadata);
-        return transactionPersistencePort.update(transaction);
+        return transaction;
+    }
+
+    @Override
+    @Transactional
+    public Transaction saveStatus(Transaction transaction, TransactionStatus status, Map<String, String> metadata) throws TransactionException {
+        return transactionPersistencePort.update(setStatus(transaction, status, metadata));
     }
 }

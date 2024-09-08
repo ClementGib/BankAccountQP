@@ -232,7 +232,7 @@ public class CustomerMapperTest {
         bankAccount.setId(accountId);
         bankAccount.setType(AccountType.CHECKING);
         bankAccount.setBalance(new Money(new BigDecimal("100")));
-        List<Long> customersId = new ArrayList<>();
+        Set<Long> customersId = new HashSet<>();
         customersId.add(99L);
         bankAccount.setCustomersId(customersId);
         Set<Transaction> transactions = new HashSet<>();
@@ -278,10 +278,10 @@ public class CustomerMapperTest {
         bankAccountEntity.setId(id);
         bankAccountEntity.setType(AccountType.CHECKING);
         bankAccountEntity.setBalance(new BigDecimal("100"));
-        List<CustomerEntity> customersId = new ArrayList<>();
+        Set<CustomerEntity> customersId = new HashSet<>();
         customersId.add(new CustomerEntity());
         bankAccountEntity.setCustomers(customersId);
-        HashSet<TransactionEntity> transactionEntities = new HashSet<>();
+        Set<TransactionEntity> transactionEntities = new HashSet<>();
         transactionEntities.add(createTransactionEntity(99L, instantDate));
         transactionEntities.add(createTransactionEntity(100L, instantDate));
         bankAccountEntity.setIssuedTransactions(transactionEntities);

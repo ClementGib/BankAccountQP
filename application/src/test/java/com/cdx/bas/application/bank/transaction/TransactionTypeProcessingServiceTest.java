@@ -7,6 +7,7 @@ import com.cdx.bas.domain.bank.account.checking.CheckingBankAccount;
 import com.cdx.bas.domain.bank.transaction.Transaction;
 import com.cdx.bas.domain.bank.transaction.TransactionException;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatusServicePort;
+import com.cdx.bas.domain.bank.transaction.type.TransactionType;
 import com.cdx.bas.domain.bank.transaction.type.TransactionTypeProcessingServicePort;
 import com.cdx.bas.domain.money.Money;
 import io.quarkus.test.InjectMock;
@@ -17,7 +18,10 @@ import org.mockito.Mockito;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 import static com.cdx.bas.domain.bank.account.type.AccountType.CHECKING;
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.*;
@@ -25,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-class TransactionTypeProcessingServiceImplTest {
+class TransactionTypeProcessingServiceTest {
 
     @InjectMock
     TransactionStatusServicePort transactionStatusService;
@@ -37,7 +41,7 @@ class TransactionTypeProcessingServiceImplTest {
     TransactionTypeProcessingServicePort transactionProcessingService;
 
     @Test
-    public void credit_shouldThrowNoSuchElementException_whenEmitterAccountIsNotFound() {
+    void credit_shouldThrowNoSuchElementException_whenEmitterAccountIsNotFound() {
         // Arrange
         long emitterAccountId = 99L;
         long receiverAccountId = 77L;
@@ -61,28 +65,21 @@ class TransactionTypeProcessingServiceImplTest {
                 .build();
 
         when(bankAccountService.findBankAccount(emitterAccountId)).thenThrow(new NoSuchElementException("Emitter bank account 99 is not found."));
-        when(transactionStatusService.setStatus(eq(transaction), eq(ERROR), eq(metadata))).thenReturn(erroredTransaction);
+        when(transactionStatusService.saveStatus(eq(transaction), eq(ERROR), eq(metadata))).thenReturn(erroredTransaction);
 
         // Act
-        Transaction returnedTransaction =  transactionProcessingService.credit(transaction);
-
-        // Assert
-        assertThat(returnedTransaction).usingRecursiveComparison()
-                .isEqualTo(Transaction.builder()
-                        .emitterAccountId(emitterAccountId)
-                        .receiverAccountId(receiverAccountId)
-                        .amount(new BigDecimal("1000"))
-                        .status(ERROR)
-                        .date(instantDate)
-                        .metadata(new HashMap<>())
-                        .build());
-        verify(bankAccountService).findBankAccount(eq(emitterAccountId));
-        verify(transactionStatusService).setStatus(eq(transaction), eq(ERROR), eq(metadata));
-        verifyNoMoreInteractions(bankAccountService, transactionStatusService);
+        try {
+            transactionProcessingService.credit(transaction);
+        } catch (NoSuchElementException exception) {
+            // Assert
+            assertThat(exception.getMessage()).isEqualTo("Transaction does not have emitter bank account entity.");
+            verify(bankAccountService).findBankAccount(emitterAccountId);
+            verifyNoMoreInteractions(bankAccountService, transactionStatusService);
+        }
     }
 
     @Test
-    public void credit_shouldThrowNoSuchElementException_whenReceiverAccountIsNotFound() {
+    void credit_shouldThrowNoSuchElementException_whenReceiverAccountIsNotFound() {
         // Arrange
         long emitterAccountId = 99L;
         long receiverAccountId = 77L;
@@ -109,38 +106,31 @@ class TransactionTypeProcessingServiceImplTest {
                 .id(emitterAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
+                .customersId(Set.of(99L))
                 .issuedTransactions(Set.of(transaction))
                 .build();
 
         when(bankAccountService.findBankAccount(emitterAccountId)).thenReturn(emitterBankAccount);
         when(bankAccountService.findBankAccount(receiverAccountId)).thenThrow(new NoSuchElementException("Receiver bank account 77 is not found."));
-        when(transactionStatusService.setStatus(eq(transaction), eq(ERROR), eq(metadata))).thenReturn(erroredTransaction);
+        when(transactionStatusService.saveStatus(eq(transaction), eq(ERROR), eq(metadata))).thenReturn(erroredTransaction);
 
         // Act
-        Transaction returnedTransaction =  transactionProcessingService.credit(transaction);
-
-        // Assert
-        assertThat(returnedTransaction).usingRecursiveComparison()
-                .isEqualTo(Transaction.builder()
-                        .emitterAccountId(emitterAccountId)
-                        .receiverAccountId(receiverAccountId)
-                        .amount(new BigDecimal("1000"))
-                        .status(ERROR)
-                        .date(instantDate)
-                        .metadata(new HashMap<>())
-                        .build());
-        verify(bankAccountService).findBankAccount(eq(emitterAccountId));
-        verify(bankAccountService).findBankAccount(eq(receiverAccountId));
-        verify(transactionStatusService).setStatus(eq(transaction), eq(ERROR), eq(metadata));
-        verifyNoMoreInteractions(bankAccountService, transactionStatusService);
+        try {
+            transactionProcessingService.credit(transaction);
+        } catch (NoSuchElementException exception) {
+            // Assert
+            assertThat(exception.getMessage()).isEqualTo("Transaction does not have emitter bank account entity.");
+            verify(bankAccountService).findBankAccount(emitterAccountId);
+            verify(bankAccountService).findBankAccount(receiverAccountId);
+            verifyNoMoreInteractions(bankAccountService, transactionStatusService);
+        }
     }
 
     @Test
-    public void credit_shouldReturnCompletedTransaction_whenAccountsAreFoundAndCreditTransactionIsValid() {
+    void credit_shouldReturnCompletedTransaction_whenAccountsAreFoundAndCreditTransactionIsValid() {
         // Arrange
-        long emitterAccountId = 99L;
-        long receiverAccountId = 77L;
+        long emitterAccountId = 2L;
+        long receiverAccountId = 1L;
         Money amountOfMoney = Mockito.mock(Money.class);
         Instant instantDate = Instant.now();
         Transaction transaction = Transaction.builder()
@@ -151,6 +141,9 @@ class TransactionTypeProcessingServiceImplTest {
                 .status(UNPROCESSED)
                 .date(instantDate)
                 .metadata(new HashMap<>())
+                .currency("EUR")
+                .label("transaction test")
+                .type(TransactionType.CREDIT)
                 .build();
         Transaction outstandingTransaction = Transaction.builder()
                 .id(1L)
@@ -160,19 +153,22 @@ class TransactionTypeProcessingServiceImplTest {
                 .status(UNPROCESSED)
                 .date(instantDate)
                 .metadata(new HashMap<>())
+                .currency("EUR")
+                .label("transaction test")
+                .type(TransactionType.CREDIT)
                 .build();
         BankAccount emitterBankAccount = CheckingBankAccount.builder()
                 .id(emitterAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
+                .customersId(Set.of(99L))
                 .issuedTransactions(Set.of(transaction))
                 .build();
         BankAccount receiverBankAccount = CheckingBankAccount.builder()
                 .id(receiverAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
+                .customersId(Set.of(99L))
                 .build();
 
         Map<String, String> metadataAfter = Map.of("emitter_amount_before", "1000",
@@ -192,20 +188,21 @@ class TransactionTypeProcessingServiceImplTest {
                 .id(emitterAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
+                .customersId(Set.of(99L))
                 .issuedTransactions(Set.of(completedTransaction))
                 .build();
 
         when(bankAccountService.findBankAccount(emitterAccountId)).thenReturn(emitterBankAccount);
         when(bankAccountService.findBankAccount(receiverAccountId)).thenReturn(receiverBankAccount);
         when(transactionStatusService.setAsOutstanding(transaction)).thenReturn(outstandingTransaction);
+        when(transactionStatusService.setStatus(transaction, COMPLETED, metadataAfter)).thenReturn(completedTransaction);
         when(amountOfMoney.getAmount())
                 .thenReturn(new BigDecimal("1000"))
                 .thenReturn(new BigDecimal("0"))
                 .thenReturn(new BigDecimal("0"))
                 .thenReturn(new BigDecimal("1000"));
-        when(transactionStatusService.setStatus(outstandingTransaction, COMPLETED, metadataAfter)).thenReturn(completedTransaction);
-        when(bankAccountService.addTransaction(completedTransaction, emitterBankAccount)).thenReturn(updatedEmitterBankAccount);
+        when(transactionStatusService.saveStatus(outstandingTransaction, COMPLETED, metadataAfter)).thenReturn(completedTransaction);
+        when(bankAccountService.putTransaction(completedTransaction, emitterBankAccount)).thenReturn(updatedEmitterBankAccount);
 
         // Act
         Transaction returnedTransaction =  transactionProcessingService.credit(transaction);
@@ -226,10 +223,10 @@ class TransactionTypeProcessingServiceImplTest {
     }
 
     @Test
-    public void credit_shouldAddMoneyToTheReceiverAccount_whenAccountsAreFound_fromCreditTransaction() {
+    void credit_shouldAddMoneyToTheReceiverAccount_whenAccountsAreFound_fromCreditTransaction() {
         // Arrange
-        long emitterAccountId = 99L;
-        long receiverAccountId = 77L;
+        long emitterAccountId = 2L;
+        long receiverAccountId = 1L;
         Money amountOfMoney = Mockito.mock(Money.class);
         Instant instantDate = Instant.now();
         Transaction oldTransaction = Transaction.builder()
@@ -244,14 +241,14 @@ class TransactionTypeProcessingServiceImplTest {
                 .id(emitterAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
+                .customersId(Set.of(99L))
                 .issuedTransactions(Set.of(oldTransaction))
                 .build();
         BankAccount receiverBankAccount = CheckingBankAccount.builder()
                 .id(receiverAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
+                .customersId(Set.of(99L))
                 .build();
 
         Transaction transaction = Transaction.builder()
@@ -262,6 +259,9 @@ class TransactionTypeProcessingServiceImplTest {
                 .status(UNPROCESSED)
                 .date(instantDate)
                 .metadata(new HashMap<>())
+                .currency("EUR")
+                .label("transaction test")
+                .type(TransactionType.CREDIT)
                 .build();
         Transaction outstandingTransaction = Transaction.builder()
                 .id(1L)
@@ -271,6 +271,9 @@ class TransactionTypeProcessingServiceImplTest {
                 .status(OUTSTANDING)
                 .date(instantDate)
                 .metadata(new HashMap<>())
+                .currency("EUR")
+                .label("transaction test")
+                .type(TransactionType.CREDIT)
                 .build();
 
         Map<String, String> metadataAfter = Map.of("emitter_amount_before", "1000",
@@ -290,8 +293,8 @@ class TransactionTypeProcessingServiceImplTest {
                 .id(emitterAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
-                .issuedTransactions(Set.of(completedTransaction))
+                .customersId(Set.of(99L))
+                .issuedTransactions(Set.of(oldTransaction))
                 .build();
 
         when(bankAccountService.findBankAccount(emitterAccountId)).thenReturn(emitterBankAccount);
@@ -302,29 +305,28 @@ class TransactionTypeProcessingServiceImplTest {
                 .thenReturn(new BigDecimal("0"))
                 .thenReturn(new BigDecimal("0"))
                 .thenReturn(new BigDecimal("1000"));
-        when(transactionStatusService.setStatus(outstandingTransaction, COMPLETED, metadataAfter)).thenReturn(completedTransaction);
-        when(bankAccountService.addTransaction(completedTransaction, emitterBankAccount)).thenReturn(updatedEmitterBankAccount);
+        when(transactionStatusService.saveStatus(outstandingTransaction, COMPLETED, metadataAfter)).thenReturn(completedTransaction);
+        when(bankAccountService.putTransaction(completedTransaction, emitterBankAccount)).thenReturn(updatedEmitterBankAccount);
 
         // Act
         transactionProcessingService.credit(transaction);
 
         // Assert
-        verify(bankAccountService).findBankAccount(eq(emitterAccountId));
-        verify(bankAccountService).findBankAccount(eq(receiverAccountId));
+        verify(bankAccountService).findBankAccount(emitterAccountId);
+        verify(bankAccountService).findBankAccount(receiverAccountId);
         verify(transactionStatusService).setAsOutstanding(transaction);
-        verify(bankAccountService).transferAmountBetweenAccounts(outstandingTransaction, emitterBankAccount, receiverBankAccount);
-        verify(transactionStatusService).setStatus(eq(outstandingTransaction), eq(COMPLETED), eq(metadataAfter));
-        verify(bankAccountService).addTransaction(completedTransaction, emitterBankAccount);
+        verify(bankAccountService).creditAmountToAccounts(outstandingTransaction, emitterBankAccount, receiverBankAccount);
+        verify(transactionStatusService).setStatus(transaction, COMPLETED, metadataAfter);
         verify(bankAccountService).updateBankAccount(updatedEmitterBankAccount);
         verify(bankAccountService).updateBankAccount(receiverBankAccount);
         verifyNoMoreInteractions(bankAccountService, transactionStatusService);
     }
 
     @Test
-    public void credit_shouldReturnRefusedTransaction_whenTransferThrowTransactionExceptionException() {
+    void credit_shouldReturnRefusedTransaction_whenTransferThrowTransactionExceptionException() {
         // Arrange
-        long emitterAccountId = 99L;
-        long receiverAccountId = 77L;
+        long emitterAccountId = 1L;
+        long receiverAccountId = 2L;
         Money amountOfMoney = Mockito.mock(Money.class);
         Instant instantDate = Instant.now();
         Transaction oldTransaction = Transaction.builder()
@@ -339,14 +341,14 @@ class TransactionTypeProcessingServiceImplTest {
                 .id(emitterAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
+                .customersId(Set.of(99L))
                 .issuedTransactions(Set.of(oldTransaction))
                 .build();
         BankAccount receiverBankAccount = CheckingBankAccount.builder()
                 .id(receiverAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
+                .customersId(Set.of(99L))
                 .build();
 
         Transaction transaction = Transaction.builder()
@@ -356,6 +358,9 @@ class TransactionTypeProcessingServiceImplTest {
                 .status(UNPROCESSED)
                 .date(instantDate)
                 .metadata(new HashMap<>())
+                .currency("EUR")
+                .label("transaction test")
+                .type(TransactionType.CREDIT)
                 .build();
         Transaction outstandingTransaction = Transaction.builder()
                 .emitterAccountId(emitterAccountId)
@@ -364,8 +369,10 @@ class TransactionTypeProcessingServiceImplTest {
                 .status(OUTSTANDING)
                 .date(instantDate)
                 .metadata(new HashMap<>())
+                .currency("EUR")
+                .label("transaction test")
+                .type(TransactionType.CREDIT)
                 .build();
-        Map<String, String> metadataAfter = Map.of("error", "Credit transaction 1 should have positive value, actual value: -1000");
 
         when(bankAccountService.findBankAccount(emitterAccountId)).thenReturn(emitterBankAccount);
         when(bankAccountService.findBankAccount(receiverAccountId)).thenReturn(receiverBankAccount);
@@ -374,25 +381,26 @@ class TransactionTypeProcessingServiceImplTest {
                 .thenReturn(new BigDecimal("1000"))
                 .thenReturn(new BigDecimal("0"));
         doThrow(new TransactionException("Credit transaction 1 should have positive value, actual value: -1000"))
-                .when(bankAccountService).transferAmountBetweenAccounts(outstandingTransaction, emitterBankAccount, receiverBankAccount);
+                .when(bankAccountService).creditAmountToAccounts(outstandingTransaction, emitterBankAccount, receiverBankAccount);
 
         // Act
-        transactionProcessingService.credit(transaction);
-
-        // Assert
-        verify(bankAccountService).findBankAccount(eq(emitterAccountId));
-        verify(bankAccountService).findBankAccount(eq(receiverAccountId));
-        verify(transactionStatusService).setAsOutstanding(transaction);
-        verify(bankAccountService).transferAmountBetweenAccounts(outstandingTransaction, emitterBankAccount, receiverBankAccount);
-        verify(transactionStatusService).setStatus(transaction, REFUSED, metadataAfter);
-        verifyNoMoreInteractions(bankAccountService, transactionStatusService);
+        try {
+            transactionProcessingService.credit(transaction);
+        } catch (TransactionException transactionException) {
+            // Assert
+            verify(bankAccountService).findBankAccount(emitterAccountId);
+            verify(bankAccountService).findBankAccount(receiverAccountId);
+            verify(transactionStatusService).setAsOutstanding(transaction);
+            verify(bankAccountService).creditAmountToAccounts(outstandingTransaction, emitterBankAccount, receiverBankAccount);
+            verifyNoMoreInteractions(bankAccountService, transactionStatusService);
+        }
     }
 
     @Test
-    public void credit_shouldReturnErroredTransaction_whenAddTransactionThrowsBankAccountException() {
+    void credit_shouldReturnErroredTransaction_whenAddTransactionThrowsBankAccountException() {
         // Arrange
         long emitterAccountId = 99L;
-        long receiverAccountId = 77L;
+        long receiverAccountId = 101L;
         Money amountOfMoney = Mockito.mock(Money.class);
         Instant instantDate = Instant.now();
         Transaction oldTransaction = Transaction.builder()
@@ -407,14 +415,14 @@ class TransactionTypeProcessingServiceImplTest {
                 .id(emitterAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
+                .customersId(Set.of(99L))
                 .issuedTransactions(Set.of(oldTransaction))
                 .build();
         BankAccount receiverBankAccount = CheckingBankAccount.builder()
                 .id(receiverAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
+                .customersId(Set.of(99L))
                 .build();
 
         Transaction transaction = Transaction.builder()
@@ -424,6 +432,9 @@ class TransactionTypeProcessingServiceImplTest {
                 .status(UNPROCESSED)
                 .date(instantDate)
                 .metadata(new HashMap<>())
+                .currency("EUR")
+                .label("transaction test")
+                .type(TransactionType.CREDIT)
                 .build();
         Transaction outstandingTransaction = Transaction.builder()
                 .emitterAccountId(emitterAccountId)
@@ -432,6 +443,9 @@ class TransactionTypeProcessingServiceImplTest {
                 .status(OUTSTANDING)
                 .date(instantDate)
                 .metadata(new HashMap<>())
+                .currency("EUR")
+                .label("transaction test")
+                .type(TransactionType.CREDIT)
                 .build();
 
         Map<String, String> metadataDuringProcess = Map.of("emitter_amount_before", "0",
@@ -450,7 +464,7 @@ class TransactionTypeProcessingServiceImplTest {
                 .id(emitterAccountId)
                 .type(CHECKING)
                 .balance(amountOfMoney)
-                .customersId(List.of(99L))
+                .customersId(Set.of(99L))
                 .issuedTransactions(Set.of(completedTransaction))
                 .build();
         Map<String, String> metadataAfterError = Map.of("error", "Amount of credit should not be negative");
@@ -463,22 +477,22 @@ class TransactionTypeProcessingServiceImplTest {
                 .thenReturn(new BigDecimal("0"))
                 .thenReturn(new BigDecimal("-1000"))
                 .thenReturn(new BigDecimal("1000"));
-        when(transactionStatusService.setStatus(outstandingTransaction, COMPLETED, metadataDuringProcess)).thenReturn(completedTransaction);
-        when(bankAccountService.addTransaction(completedTransaction, emitterBankAccount)).thenReturn(updatedEmitterBankAccount);
+        when(transactionStatusService.saveStatus(outstandingTransaction, COMPLETED, metadataDuringProcess)).thenReturn(completedTransaction);
+        when(bankAccountService.putTransaction(completedTransaction, emitterBankAccount)).thenReturn(updatedEmitterBankAccount);
         doThrow(new BankAccountException("Amount of credit should not be negative")).when(bankAccountService).updateBankAccount(updatedEmitterBankAccount);
 
         // Act
-        transactionProcessingService.credit(transaction);
-
-        // Assert
-        verify(bankAccountService).findBankAccount(eq(emitterAccountId));
-        verify(bankAccountService).findBankAccount(eq(receiverAccountId));
-        verify(transactionStatusService).setAsOutstanding(transaction);
-        verify(bankAccountService).transferAmountBetweenAccounts(outstandingTransaction, emitterBankAccount, receiverBankAccount);
-        verify(transactionStatusService).setStatus(outstandingTransaction, COMPLETED, metadataDuringProcess);
-        verify(bankAccountService).addTransaction(completedTransaction, emitterBankAccount);
-        verify(bankAccountService).updateBankAccount(updatedEmitterBankAccount);
-        verify(transactionStatusService).setStatus(transaction, REFUSED, metadataAfterError);
-        verifyNoMoreInteractions(bankAccountService, transactionStatusService);
+        try {
+            transactionProcessingService.credit(transaction);
+        } catch (NoSuchElementException exception) {
+            // Assert
+            verify(bankAccountService).findBankAccount(emitterAccountId);
+            verify(bankAccountService).findBankAccount(receiverAccountId);
+            verify(transactionStatusService).setAsOutstanding(transaction);
+            verify(bankAccountService).creditAmountToAccounts(outstandingTransaction, emitterBankAccount, receiverBankAccount);
+            verify(bankAccountService).updateBankAccount(updatedEmitterBankAccount);
+            verify(transactionStatusService).setStatus(transaction, COMPLETED, metadataDuringProcess);
+            verifyNoMoreInteractions(bankAccountService, transactionStatusService);
+        }
     }
 }

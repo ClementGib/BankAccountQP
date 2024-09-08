@@ -111,16 +111,16 @@ public class SchedulerTest {
 
         // Assert
         assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(fifthTransaction);
-        verify(transactionService).process(queue.poll());
+        verify(transactionService).processDigitalTransaction(queue.poll());
         assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(thirdTransaction);
-        verify(transactionService).process(queue.poll());
+        verify(transactionService).processDigitalTransaction(queue.poll());
         assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(secondTransaction);
-        verify(transactionService).process(queue.poll());
+        verify(transactionService).processDigitalTransaction(queue.poll());
         assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(fourthTransaction);
-        verify(transactionService).process(queue.poll());
+        verify(transactionService).processDigitalTransaction(queue.poll());
 
         verify(transactionRepository).findUnprocessedTransactions();
-        verify(transactionService, times(5)).process(any());
+        verify(transactionService, times(5)).processDigitalTransaction(any());
         verifyNoMoreInteractions(transactionRepository, transactionService);
     }
 

@@ -39,11 +39,10 @@ public interface TransactionPersistencePort {
     
     /**
      * create the current Transaction
-     * 
+     *
      * @param transaction to create
-     * @return created Transaction
      */
-    public Transaction create(Transaction transaction);
+    public void create(Transaction transaction);
     
     /**
      * update the current Transaction

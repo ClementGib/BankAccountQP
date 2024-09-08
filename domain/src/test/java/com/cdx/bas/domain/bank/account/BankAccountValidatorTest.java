@@ -16,8 +16,8 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -34,7 +34,7 @@ public class BankAccountValidatorTest {
         dto.setId(10L);
         dto.setType(AccountType.CHECKING);
         dto.setBalance(new Money(new BigDecimal("1000")));
-        List<Long> customers = new ArrayList<>();
+        Set<Long> customers = new HashSet<>();
         Customer customer = createCustomer();
         customers.add(customer.getId());
         dto.setCustomersId(customers);
@@ -48,7 +48,7 @@ public class BankAccountValidatorTest {
         dto.setId(10L);
         dto.setType(AccountType.SAVING);
         dto.setBalance(new Money(new BigDecimal("1000")));
-        List<Long> customers = new ArrayList<>();
+        Set<Long> customers = new HashSet<>();
         Customer customer = createCustomer();
         customers.add(customer.getId());
         dto.setCustomersId(customers);
@@ -62,7 +62,7 @@ public class BankAccountValidatorTest {
         dto.setId(10L);
         dto.setType(AccountType.MMA);
         dto.setBalance(new Money(new BigDecimal("1000")));
-        List<Long> customers = new ArrayList<>();
+        Set<Long> customers = new HashSet<>();
         Customer customer = createCustomer();
         customers.add(customer.getId());
         dto.setCustomersId(customers);
@@ -93,7 +93,7 @@ public class BankAccountValidatorTest {
         dto.setId(10L);
         dto.setType(AccountType.CHECKING);
         dto.setBalance(new Money(new BigDecimal("100001")));
-        List<Long> customers = new ArrayList<>();
+        Set<Long> customers = new HashSet<>();
         Customer customer = createCustomer();
         customers.add(customer.getId());
         dto.setCustomersId(customers);
@@ -129,7 +129,7 @@ public class BankAccountValidatorTest {
         dto.setId(10L);
         dto.setType(AccountType.SAVING);
         dto.setBalance(new Money(new BigDecimal("22951")));
-        List<Long> customers = new ArrayList<>();
+        Set<Long> customers = new HashSet<>();
         Customer customer = createCustomer();
         customers.add(customer.getId());
         dto.setCustomersId(customers);
@@ -165,7 +165,7 @@ public class BankAccountValidatorTest {
         dto.setId(10L);
         dto.setType(AccountType.MMA);
         dto.setBalance(new Money(new BigDecimal("250001")));
-        List<Long> customers = new ArrayList<>();
+        Set<Long> customers = new HashSet<>();
         Customer customer = createCustomer();
         customers.add(customer.getId());
         dto.setCustomersId(customers);

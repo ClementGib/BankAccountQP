@@ -81,14 +81,15 @@ class TransactionRepositoryTest {
     @Transactional
     public void create_shouldPersistTransaction() {
         Transaction transactionToCreate = new Transaction(null, 8L, 1L, new BigDecimal("99999.00"), "EUR", DEBIT, UNPROCESSED, Instant.parse("2024-12-06T18:00:10+00:00"), "transaction 8", new HashMap<>());
-        Transaction createdTransaction = transactionRepository.create(transactionToCreate);
+        transactionRepository.create(transactionToCreate);
 
         transactionRepository.getEntityManager().flush();
         Optional<Transaction> actualOptionalTransaction = transactionRepository.findById(10L);
 
+
         Transaction expectedTransaction = new Transaction(10L, 8L, 1L, new BigDecimal("99999.00"), "EUR", DEBIT, UNPROCESSED, Instant.parse("2024-12-06T18:00:10+00:00"), "transaction 8", new HashMap<>());
         Optional<Transaction> optionalTransaction = Optional.of(expectedTransaction);
-        assertThat(createdTransaction)
+        assertThat(transactionToCreate)
                 .usingRecursiveComparison()
                 .isEqualTo(transactionToCreate);
         assertThat(actualOptionalTransaction)

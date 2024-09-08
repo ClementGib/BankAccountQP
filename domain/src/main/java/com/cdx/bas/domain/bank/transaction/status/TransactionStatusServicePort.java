@@ -14,12 +14,21 @@ public interface TransactionStatusServicePort {
     Transaction setAsOutstanding(Transaction transaction);
 
     /**
-     * Complete processed transaction
+     * Set transaction status
      *
      * @param transaction to change status
      * @param status to set to the transaction
-     * @param metadata with detail about the status
+     * @param metadata with detail about the transaction
      */
     Transaction setStatus(Transaction transaction, TransactionStatus status, Map<String, String> metadata);
 
+
+    /**
+     * Set transaction status and save it
+     *
+     * @param transaction to change status
+     * @param status to set to the transaction
+     * @param metadata with detail about the transaction
+     */
+    Transaction saveStatus(Transaction transaction, TransactionStatus status, Map<String, String> metadata);
 }

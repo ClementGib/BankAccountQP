@@ -44,8 +44,6 @@ public class TransactionMapper implements DtoEntityMapper<Transaction, Transacti
 
         if (entity.getReceiverBankAccountEntity() != null) {
             dto.setReceiverAccountId(entity.getReceiverBankAccountEntity().getId());
-        } else {
-            throw new NoSuchElementException("Transaction does not have receiver bank account.");
         }
 
         if (entity.getAmount() != null) {
@@ -65,7 +63,7 @@ public class TransactionMapper implements DtoEntityMapper<Transaction, Transacti
     }
 
     public TransactionEntity toEntity(Transaction dto) {
-        TransactionEntity entity ;
+        TransactionEntity entity;
         if (dto.getId() == null) {
             entity = new TransactionEntity();
         } else {
@@ -75,12 +73,14 @@ public class TransactionMapper implements DtoEntityMapper<Transaction, Transacti
 
         BankAccountEntity emitterBankAccountEntity = bankAccountRepository.findByIdOptional(dto.getEmitterAccountId())
                 .orElseThrow(() -> new NoSuchElementException("Transaction does not have emitter bank account entity."));
-
-        BankAccountEntity receiverBankAccountEntity = bankAccountRepository.findByIdOptional(dto.getReceiverAccountId())
-                .orElseThrow(() -> new NoSuchElementException("Transaction does not have receiver bank account entity."));
-
         entity.setEmitterBankAccountEntity(emitterBankAccountEntity);
-        entity.setReceiverBankAccountEntity(receiverBankAccountEntity);
+
+        if (dto.getReceiverAccountId() != null ) {
+            BankAccountEntity receiverBankAccountEntity = bankAccountRepository.findByIdOptional(dto.getReceiverAccountId())
+                    .orElseThrow(() -> new NoSuchElementException("Transaction does not have receiver bank account entity."));
+            entity.setReceiverBankAccountEntity(receiverBankAccountEntity);
+        }
+
         entity.setAmount(dto.getAmount());
         entity.setCurrency(dto.getCurrency());
         entity.setType(dto.getType());
