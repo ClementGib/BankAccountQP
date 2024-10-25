@@ -48,9 +48,8 @@ class CustomerResourceTest {
     public void getCustomer_shouldReturnCustomer() {
         Customer expectedCustomer = new Customer(6L, "Juan", "Pedros", MALE, SINGLE, LocalDate.of(1975, 12, 17), "ES", "Place de las Delicias", "Sevilla", "juanito@bas.com", "+34 9 20 55 62 05", Collections.emptyList(), Map.of("contact_preferences", "phone", "annual_salary", "200000", "newsletter", "false"));
 
-        Optional<Customer> actualCustomer = customerResource.getCustomer(6L);
-        assertThat(actualCustomer.isPresent()).isTrue();
-        assertThat(actualCustomer.get())
+        Customer actualCustomer = customerResource.getCustomer(6L);
+        assertThat(actualCustomer)
                 .usingRecursiveComparison()
                 .ignoringFields("accounts")
                 .ignoringCollectionOrder()

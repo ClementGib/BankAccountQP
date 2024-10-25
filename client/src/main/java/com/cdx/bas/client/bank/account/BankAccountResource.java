@@ -5,7 +5,6 @@ import com.cdx.bas.domain.bank.account.BankAccountControllerPort;
 import com.cdx.bas.domain.bank.account.BankAccountServicePort;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -23,7 +22,6 @@ public class BankAccountResource implements BankAccountControllerPort {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
     @Override
     public List<BankAccount> getAll() {
         return bankAccountServicePort.getAll();
@@ -32,7 +30,6 @@ public class BankAccountResource implements BankAccountControllerPort {
     @GET()
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
     @Override
     public BankAccount findById(@PathParam("id") long id) {
         return bankAccountServicePort.findBankAccount(id);

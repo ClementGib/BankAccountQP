@@ -33,10 +33,9 @@ public class CustomerRepository implements CustomerPersistencePort, PanacheRepos
     }
 
     @Override
-    @Transactional
     public Set<Customer> getAll() {
         return findAll().stream()
-                .map(customer -> customerMapper.toDto(customer))
+                .map(customerMapper::toDto)
                 .collect(Collectors.toSet());
     }
 
