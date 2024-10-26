@@ -3,6 +3,7 @@ package com.cdx.bas.client.bank.customer;
 
 import com.cdx.bas.domain.bank.customer.Customer;
 import com.cdx.bas.domain.bank.customer.CustomerPersistencePort;
+import com.cdx.bas.domain.bank.customer.CustomerServicePort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -19,27 +20,23 @@ import java.util.Set;
 @ApplicationScoped
 public class CustomerResource {
 
-    private final CustomerPersistencePort customerPersistencePort;
+    private final CustomerServicePort customerServicePort;
 
     @Inject
-    public CustomerResource(CustomerPersistencePort customerPersistencePort) {
-        this.customerPersistencePort = customerPersistencePort;
+    public CustomerResource(CustomerServicePort customerServicePort) {
+        this.customerServicePort = customerServicePort;
     }
 
     @GET
-    @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     public Set<Customer> getAll() {
-        //TODO use service
-        return customerPersistencePort.getAll();
+        return customerServicePort.getAll();
     }
 
     @GET
     @Path("/{id}")
-    @Transactional
     @Produces(MediaType.APPLICATION_JSON)
-    public Optional<Customer> getCustomer(@PathParam("id") long id) {
-        //TODO use service
-        return customerPersistencePort.findById(id);
+    public Customer getCustomer(@PathParam("id") long id) {
+        return customerServicePort.findCustomer(id);
     }
 }

@@ -72,7 +72,8 @@ public class TransactionServiceImpl implements TransactionServicePort {
     @Override
     @Transactional
     public Transaction findTransaction(Long transactionId) {
-        return transactionRepository.findById(transactionId).orElse(null);
+        Transaction transaction = transactionRepository.findById(transactionId).orElse(null);
+        return transaction;
     }
 
     @Override

@@ -38,13 +38,12 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
     TransactionMapper transactionMapper;
 
     @Override
-    @Transactional
     public Optional<Transaction> findById(long id) {
-        return findByIdOptional(id).map(transactionMapper::toDto);
+        Optional<Transaction> transaction = findByIdOptional(id).map(transactionMapper::toDto);
+        return transaction;
     }
 
     @Override
-    @Transactional
     public Set<Transaction> getAll() {
         return findAll(Sort.by("status")).stream()
                 .map(transactionEntity -> transactionMapper.toDto(transactionEntity))
@@ -62,7 +61,6 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
     }
 
     @Override
-    @Transactional
     public Queue<Transaction> findUnprocessedTransactions() {
         return find("#TransactionEntity.findUnprocessed",
                 Parameters.with("status", TransactionStatus.UNPROCESSED).map())
@@ -72,14 +70,12 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
     }
 
     @Override
-    @Transactional
     public void create(Transaction transaction) {
         entityManager.persist(transactionMapper.toEntity(transaction));
         logger.info("Transaction from " + transaction.getEmitterAccountId() + " to " + transaction.getReceiverAccountId() + " created");
     }
 
     @Override
-    @Transactional
     public Transaction update(Transaction transaction) {
         entityManager.merge(transactionMapper.toEntity(transaction));
         logger.info("Transaction " + transaction.getId() + " updated");
@@ -87,7 +83,6 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
     }
 
     @Override
-    @Transactional
     public Optional<Transaction> deleteById(long id) {
         Optional<TransactionEntity> entityOptional = findByIdOptional(id);
         if (entityOptional.isPresent()) {

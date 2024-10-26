@@ -32,7 +32,6 @@ public class TransactionResource implements TransactionControllerPort {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
     @Override
     public Set<Transaction> getAll() {
         return transactionServicePort.getAll();
@@ -41,7 +40,6 @@ public class TransactionResource implements TransactionControllerPort {
     @GET
     @Path("/{status}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
     @Override
     public Set<Transaction> getAllByStatus(@PathParam("status") String status) {
         try {
@@ -55,7 +53,6 @@ public class TransactionResource implements TransactionControllerPort {
     @GET()
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
     @Override
     public Transaction findById(@PathParam("id") long id) {
         return transactionServicePort.findTransaction(id);
@@ -71,7 +68,6 @@ public class TransactionResource implements TransactionControllerPort {
             @APIResponse(responseCode = "400", description = "Transaction invalid check error details"),
             @APIResponse(responseCode = "500", description = "Unexpected error happened")
     })
-    @Transactional
     @Override
     public Response addDigitalTransaction(NewDigitalTransaction newTransaction) {
         try {
@@ -94,7 +90,6 @@ public class TransactionResource implements TransactionControllerPort {
             @APIResponse(responseCode = "400", description = "Transaction invalid check error details"),
             @APIResponse(responseCode = "500", description = "Unexpected error happened")
     })
-    @Transactional
     @Override
     public Response withdraw(NewCashTransaction newWithdrawTransaction) {
         try {
@@ -118,7 +113,6 @@ public class TransactionResource implements TransactionControllerPort {
             @APIResponse(responseCode = "400", description = "Transaction invalid check error details"),
             @APIResponse(responseCode = "500", description = "Unexpected error happened")
     })
-    @Transactional
     @Override
     public Response deposit(NewCashTransaction newDepositTransaction) {
         try {

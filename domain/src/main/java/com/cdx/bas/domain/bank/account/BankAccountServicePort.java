@@ -11,7 +11,7 @@ public interface BankAccountServicePort {
      *
      * @return List with all BankAccount
      */
-    public List<BankAccount> getAll();
+    List<BankAccount> getAll();
 
 
     /**

@@ -145,7 +145,9 @@ Quarkus HTTP : `localhost:8080`
 
 Accéder a pgAdmin via : `localhost:15050` 
 
+2.Utiliser les APIs REST:
 
+importer le fichier `BAS.postman_collection.json` sur Postman pour récupérer tous endpoints
 
 # DETAIL
 
