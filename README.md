@@ -1,14 +1,16 @@
 
-# Bank Account Quarkus 🏦 ![image](https://github.com/ClementGib/BankAccountQuarkus/assets/50382080/43b59c95-1778-4d52-bb65-7697e20c8298)
+# Bank Account Quarkus  ![image](https://github.com/ClementGib/BankAccountQuarkus/assets/50382080/43b59c95-1778-4d52-bb65-7697e20c8298)
 
 <!-- README.md -->
-+ [![cov](https://ClementGib.github.io/BankAccountQuarkus/badges/coverage.svg)](https://github.com/ClementGib/BankAccountQuarkus/actions)
+
+## About
+| **Project info** |  ![java](https://img.shields.io/badge/Java-100%25-red) ![Static Badge](https://img.shields.io/badge/Framework-Quarkus-blue) [![License](https://img.shields.io/badge/License-MIT-green)](https://github.com/ClementGib/BankAccountQuarkus/blob/develop/LICENSE)|
+|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Build Status** | [![build](https://github.com/ClementGib/BankAccountQuarkus/jacoco-badge-generator/actions/workflows/workflow.yml/badge.svg)](https://github.com/ClementGib/BankAccountQuarkus/jacoco-badge-generator/actions/workflows/workflow.yml) |
 
 # Sommaire
 1. [Directives](#Directives-)
 2. [Solution](#Solution-)
-![Uploading image.png…]()
-
 
 
 ## Directives 🥅
