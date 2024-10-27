@@ -1,6 +1,8 @@
 
 # Bank Account Quarkus 🏦 ![image](https://github.com/ClementGib/BankAccountQuarkus/assets/50382080/43b59c95-1778-4d52-bb65-7697e20c8298)
 
+<!-- README.md -->
++ [![cov](https://ClementGib.github.io/BankAccountQuarkus/badges/coverage.svg)](https://github.com/ClementGib/BankAccountQuarkus/actions)
 
 # Sommaire
 1. [Directives](#Directives-)
