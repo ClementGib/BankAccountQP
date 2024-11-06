@@ -7,7 +7,7 @@
 | **Project info** |  ![java](https://img.shields.io/badge/Java-100%25-red) ![Static Badge](https://img.shields.io/badge/Framework-Quarkus-blue) [![License](https://img.shields.io/badge/License-MIT-green)](https://github.com/ClementGib/BankAccountQuarkus/blob/develop/LICENSE)|
 |------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Build Status** | 
-![Coverage 100%](https://raw.githubusercontent.com/cicirello/jacoco-badge-generator/main/tests/100.svg)
+![Coverage 100%](https://github.com/ClementGib/BankAccountQuarkus/.github/badges/branches.svg)
 [![build](https://github.com/ClementGib/BankAccountQuarkus/jacoco-badge-generator/actions/workflows/workflow.yml/badge.svg)](https://github.com/ClementGib/BankAccountQuarkus/jacoco-badge-generator/actions/workflows/workflow.yml) |
 
 https://github.com/ClementGib/BankAccountQuarkus/.github/badges/branches.svg
