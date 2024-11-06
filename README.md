@@ -8,6 +8,9 @@
 |------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Build Status** | [![build](https://github.com/ClementGib/BankAccountQuarkus/jacoco-badge-generator/actions/workflows/workflow.yml/badge.svg)](https://github.com/ClementGib/BankAccountQuarkus/jacoco-badge-generator/actions/workflows/workflow.yml) |
 
+https://github.com/ClementGib/BankAccountQuarkus/.github/badges/branches.svg
+[![build](https://github.com/ClementGib/BankAccountQuarkus/.github/badges/branches.svg)](https://github.com/ClementGib/BankAccountQuarkus/jacoco-badge-generator/actions/workflows/workflow.yml) 
+
 # Sommaire
 1. [Directives](#Directives-)
 2. [Solution](#Solution-)
