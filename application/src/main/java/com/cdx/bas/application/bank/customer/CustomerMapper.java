@@ -1,10 +1,9 @@
 package com.cdx.bas.application.bank.customer;
 
-import com.cdx.bas.application.bank.account.BankAccountEntity;
 import com.cdx.bas.application.bank.account.BankAccountMapper;
 import com.cdx.bas.application.mapper.DtoEntityMapper;
-import com.cdx.bas.domain.bank.account.BankAccount;
 import com.cdx.bas.domain.bank.customer.Customer;
+import com.cdx.bas.domain.message.MessageFormatter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,22 +14,24 @@ import org.hibernate.MappingException;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
+import static com.cdx.bas.domain.message.CommonMessages.*;
+
 @RequestScoped
 public class CustomerMapper implements DtoEntityMapper<Customer, CustomerEntity> {
 
     @Inject
     BankAccountMapper bankAccountMapper;
-    
+
     @Inject
     ObjectMapper objectMapper;
-    
+
     @Override
     public Customer toDto(CustomerEntity entity) {
-        
+
         if (entity == null) {
             return null;
         }
-        
+
         Customer dto = new Customer();
         dto.setId(entity.getId());
         dto.setFirstName(entity.getFirstName());
@@ -44,27 +45,28 @@ public class CustomerMapper implements DtoEntityMapper<Customer, CustomerEntity>
         dto.setEmail(entity.getEmail());
         dto.setPhoneNumber(entity.getPhoneNumber());
         dto.setAccounts(entity.getAccounts().stream()
-        		.map(bankAccountMapper::toDto).collect(Collectors.toList()));
-        
+                .map(bankAccountMapper::toDto).collect(Collectors.toList()));
+
         try {
             if (entity.getMetadata() != null) {
-                dto.setMetadata(objectMapper.readValue(entity.getMetadata(), new TypeReference<HashMap<String, String>>() {}));
+                dto.setMetadata(objectMapper.readValue(entity.getMetadata(), new TypeReference<HashMap<String, String>>() {
+                }));
             } else {
                 dto.setMetadata(new HashMap<>());
             }
         } catch (JsonProcessingException exception) {
-            throw new MappingException("An error occured while parsing JSON String to Map<String, String>", exception);
+            throw new MappingException(MessageFormatter.format(CUSTOMER_CONTEXT, JSON_PARSE_METADATA, FAILED_STATUS), exception);
         }
         return dto;
     }
 
     @Override
     public CustomerEntity toEntity(Customer dto) {
-        
+
         if (dto == null) {
             return null;
         }
-        
+
         CustomerEntity entity = new CustomerEntity();
         entity.setId(dto.getId());
         entity.setFirstName(dto.getFirstName());
@@ -78,8 +80,8 @@ public class CustomerMapper implements DtoEntityMapper<Customer, CustomerEntity>
         entity.setEmail(dto.getEmail());
         entity.setPhoneNumber(dto.getPhoneNumber());
         entity.setAccounts(dto.getAccounts().stream()
-        		.map(bankAccountMapper::toEntity).collect(Collectors.toList()));
-        
+                .map(bankAccountMapper::toEntity).collect(Collectors.toList()));
+
         try {
             if (!dto.getMetadata().isEmpty()) {
                 entity.setMetadata(objectMapper.writeValueAsString(dto.getMetadata()));
@@ -87,7 +89,7 @@ public class CustomerMapper implements DtoEntityMapper<Customer, CustomerEntity>
                 entity.setMetadata(null);
             }
         } catch (JsonProcessingException exception) {
-            throw new MappingException("An error occured while parsing Map<String, String> to JSON String", exception);
+            throw new MappingException(MessageFormatter.format(CUSTOMER_CONTEXT, MAP_PARSE_METADATA, FAILED_STATUS), exception);
         }
         return entity;
     }

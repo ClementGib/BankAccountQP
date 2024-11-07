@@ -2,9 +2,9 @@ package com.cdx.bas.client.bank.transaction;
 
 import com.cdx.bas.domain.DomainException;
 import com.cdx.bas.domain.bank.transaction.*;
+import com.cdx.bas.domain.message.MessageFormatter;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
+
+import static com.cdx.bas.domain.message.CommonMessages.*;
 
 @Path("/transactions")
 @ApplicationScoped
@@ -45,7 +47,7 @@ public class TransactionResource implements TransactionControllerPort {
         try {
             return transactionServicePort.findAllByStatus(status);
         } catch (IllegalArgumentException illegalArgumentException) {
-            logger.warn("Error: " + illegalArgumentException.getCause());
+            logger.debug(MessageFormatter.format(TRANSACTION_CONTEXT, SEARCHING_ALL_ACTION, illegalArgumentException.getMessage()));
             return Collections.emptySet();
         }
     }
@@ -72,11 +74,15 @@ public class TransactionResource implements TransactionControllerPort {
     public Response addDigitalTransaction(NewDigitalTransaction newTransaction) {
         try {
             transactionServicePort.createDigitalTransaction(newTransaction);
-            return Response.status(Response.Status.ACCEPTED).entity("Digital transaction accepted").build();
+            return Response.status(Response.Status.ACCEPTED)
+                    .entity(MessageFormatter.format(TRANSACTION_CONTEXT, DIGITAL_TRANSACTION_ACTION, ACCEPTED_STATUS))
+                    .build();
         } catch (DomainException exception) {
             return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
         } catch (Exception exception) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unexpected error happened").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(MessageFormatter.format(TRANSACTION_CONTEXT, DIGITAL_TRANSACTION_ACTION, UNEXPECTED_STATUS))
+                    .build();
         }
     }
 
@@ -94,12 +100,16 @@ public class TransactionResource implements TransactionControllerPort {
     public Response withdraw(NewCashTransaction newWithdrawTransaction) {
         try {
             transactionServicePort.withdraw(newWithdrawTransaction);
-            return Response.status(Response.Status.ACCEPTED).entity("Withdraw transaction accepted").build();
+            return Response.status(Response.Status.ACCEPTED)
+                    .entity(MessageFormatter.format(TRANSACTION_CONTEXT, WITHDRAW_ACTION, ACCEPTED_STATUS))
+                    .build();
         } catch (DomainException exception) {
             return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
         } catch (Exception exception) {
             logger.error("Unexpected error happened:&", exception.getCause());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unexpected error happened: ").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(MessageFormatter.format(TRANSACTION_CONTEXT, DIGITAL_TRANSACTION_ACTION, UNEXPECTED_STATUS))
+                    .build();
         }
     }
 
@@ -117,11 +127,15 @@ public class TransactionResource implements TransactionControllerPort {
     public Response deposit(NewCashTransaction newDepositTransaction) {
         try {
             transactionServicePort.deposit(newDepositTransaction);
-            return Response.status(Response.Status.ACCEPTED).entity("Deposit transaction accepted").build();
+            return Response.status(Response.Status.ACCEPTED)
+                    .entity(MessageFormatter.format(TRANSACTION_CONTEXT, DEPOSIT_ACTION, ACCEPTED_STATUS))
+                    .build();
         } catch (DomainException exception) {
             return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
         } catch (Exception exception) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unexpected error happened").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(MessageFormatter.format(TRANSACTION_CONTEXT, DIGITAL_TRANSACTION_ACTION, UNEXPECTED_STATUS))
+                    .build();
         }
     }
 }

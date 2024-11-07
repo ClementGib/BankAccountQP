@@ -9,6 +9,8 @@ import static com.cdx.bas.domain.bank.customer.gender.Gender.*;
 @Converter
 public class GenderConverter implements AttributeConverter<Gender, Character> {
 
+    static final String ERROR_GENDER = "Unexpected gender value: ";
+
     @Override
     public Character convertToDatabaseColumn(Gender gender) {
         return switch (gender) {
@@ -24,7 +26,7 @@ public class GenderConverter implements AttributeConverter<Gender, Character> {
             case strMale -> MALE;
             case strFemale -> FEMALE;
             case strOther -> OTHER;
-            default -> throw new IllegalStateException("Unexpected gender value: " + genderCode);
+            default -> throw new IllegalStateException(ERROR_GENDER + genderCode);
         };
     }
 }

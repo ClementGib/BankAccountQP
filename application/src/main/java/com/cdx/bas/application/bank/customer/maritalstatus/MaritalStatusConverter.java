@@ -9,6 +9,8 @@ import static com.cdx.bas.domain.bank.customer.maritalstatus.MaritalStatus.*;
 @Converter
 public class MaritalStatusConverter implements AttributeConverter<MaritalStatus, Character> {
 
+    static final String ERROR_MARITAL_STATUS = "Unexpected marital status value: ";
+
     @Override
     public Character convertToDatabaseColumn(MaritalStatus maritalStatus) {
         return switch (maritalStatus) {
@@ -28,7 +30,7 @@ public class MaritalStatusConverter implements AttributeConverter<MaritalStatus,
             case strWidowed -> WIDOWED;
             case strDivorced -> DIVORCED;
             case strPacs -> PACS;
-            default -> throw new IllegalStateException("Unexpected marital status value: " + maritalCode);
+            default -> throw new IllegalStateException(ERROR_MARITAL_STATUS + maritalCode);
         };
     }
 }

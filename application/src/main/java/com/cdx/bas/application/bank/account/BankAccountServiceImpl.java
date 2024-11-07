@@ -14,7 +14,6 @@ import com.cdx.bas.domain.money.Money;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,12 +21,13 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import static com.cdx.bas.domain.message.CommonMessages.*;
+import static com.cdx.bas.domain.message.MessageFormatter.format;
 import static com.cdx.bas.domain.money.AmountUtils.isNotPositive;
-import static com.cdx.bas.domain.text.MessageConstants.*;
 
 @ApplicationScoped
 public class BankAccountServiceImpl implements BankAccountServicePort {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(BankAccountServiceImpl.class);
 
     BankAccountPersistencePort bankAccountRepository;
@@ -53,9 +53,10 @@ public class BankAccountServiceImpl implements BankAccountServicePort {
 
     @Override
     @Transactional
-    public BankAccount findBankAccount(Long bankAccountId){
+    public BankAccount findBankAccount(Long bankAccountId) {
         return bankAccountRepository.findById(bankAccountId)
-                .orElseThrow(() -> new BankAccountException("Missing bank account with id: " + bankAccountId));
+                .orElseThrow(() -> new BankAccountException(format(BANK_ACCOUNT_CONTEXT, SEARCHING_ACTION, FAILED_STATUS,
+                        Optional.of(NOT_FOUND_CAUSE), List.of(BANK_ACCOUNT_ID_DETAIL + bankAccountId))));
     }
 
     @Override
@@ -79,52 +80,43 @@ public class BankAccountServiceImpl implements BankAccountServicePort {
     @Override
     @Transactional
     public BankAccount updateBankAccount(BankAccount bankAccount) throws BankAccountException {
-        logger.debug("update bank account" + bankAccount.getId());
         bankAccountValidator.validateBankAccount(bankAccount);
-        return bankAccountRepository.update(bankAccount);
+        BankAccount updatedBankAccount = bankAccountRepository.update(bankAccount);
+        logger.debug(format(BANK_ACCOUNT_CONTEXT, UPDATE_ACTION, SUCCESS_STATUS));
+        return updatedBankAccount;
     }
 
     @Override
     public void creditAmountToAccounts(Transaction transaction, BankAccount emitterBankAccount, BankAccount receiverBankAccount) {
         BigDecimal euroAmount = ExchangeRateUtils.getEuroAmountFrom(transaction.getCurrency(), transaction.getAmount());
         if (isNotPositive(euroAmount)) {
-            throw new TransactionException(CREDIT_TRANSACTION_START + transaction.getId()
-                    + SHOULD_HAVE_POSITIVE_VALUE_CONTENT + euroAmount);
+            throw new TransactionException(format(CREDIT_TRANSACTION_CONTEXT, CREDIT_ACTION, FAILED_STATUS,
+                    Optional.of(SHOULD_HAVE_POSITIVE_VALUE_CAUSE),
+                    List.of(TRANSACTION_ID_DETAIL + transaction.getId(), EURO_AMOUNT_DETAIL + euroAmount)));
         }
         emitterBankAccount.getBalance().minus(Money.of(euroAmount));
         receiverBankAccount.getBalance().plus(Money.of(euroAmount));
-        logger.debug(ADD_AMOUNT_START + emitterBankAccount.getBalance()
-                + StringUtils.SPACE + transaction.getCurrency()
-                + FROM_BANK_ACCOUNT_CONTENT + emitterBankAccount.getId()
-                + TO_BANK_ACCOUNT_CONTENT + receiverBankAccount.getId());
     }
 
     @Override
     public void depositAmountToAccount(Transaction transaction, BankAccount emitterBankAccount) {
         BigDecimal euroAmount = ExchangeRateUtils.getEuroAmountFrom(transaction.getCurrency(), transaction.getAmount());
         if (isNotPositive(euroAmount)) {
-            throw new TransactionException(DEPOSIT_TRANSACTION_START + transaction.getId()
-                    + SHOULD_HAVE_POSITIVE_VALUE_CONTENT + euroAmount);
+            throw new TransactionException(format(DEBIT_TRANSACTION_CONTEXT, DEBIT_ACTION, FAILED_STATUS,
+                    Optional.of(SHOULD_HAVE_POSITIVE_VALUE_CAUSE),
+                    List.of(TRANSACTION_ID_DETAIL + transaction.getId(), EURO_AMOUNT_DETAIL + euroAmount)));
         }
         emitterBankAccount.getBalance().plus(Money.of(euroAmount));
-        logger.debug(ADD_AMOUNT_START + emitterBankAccount.getBalance()
-                + StringUtils.SPACE + transaction.getCurrency()
-                + TO_BANK_ACCOUNT_CONTENT + emitterBankAccount.getId());
     }
 
     @Override
     public void withdrawAmountToAccount(Transaction transaction, BankAccount emitterBankAccount) {
         BigDecimal euroAmount = ExchangeRateUtils.getEuroAmountFrom(transaction.getCurrency(), transaction.getAmount());
         if (isNotPositive(euroAmount)) {
-            throw new TransactionException(WITHDRAW_TRANSACTION_START + transaction.getId()
-                    + SHOULD_HAVE_POSITIVE_VALUE_CONTENT + euroAmount);
+            throw new TransactionException(format(WITHDRAW_TRANSACTION_CONTEXT, WITHDRAW_ACTION, FAILED_STATUS,
+                    Optional.of(SHOULD_HAVE_POSITIVE_VALUE_CAUSE),
+                    List.of(TRANSACTION_ID_DETAIL + transaction.getId(), EURO_AMOUNT_DETAIL + euroAmount)));
         }
         emitterBankAccount.getBalance().minus(Money.of(euroAmount));
-        logger.debug(ADD_AMOUNT_START + emitterBankAccount.getBalance()
-                + StringUtils.SPACE + transaction.getCurrency()
-                + TO_BANK_ACCOUNT_CONTENT + emitterBankAccount.getId());
     }
-
-
-
 }

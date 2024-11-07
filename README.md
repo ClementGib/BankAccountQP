@@ -138,6 +138,11 @@ quarkus dev -e
 ./mvnw clean package
 ```
 
+*Pour voir les logs*
+```bash 
+./mvnw quarkus:dev -Dquarkus.log.level=DEBUG
+```
+
 3. (Optionel) Lancer les tests Junit 5
 
 *A la racine du projet*

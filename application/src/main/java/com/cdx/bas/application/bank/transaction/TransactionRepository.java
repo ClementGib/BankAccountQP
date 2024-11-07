@@ -3,6 +3,7 @@ package com.cdx.bas.application.bank.transaction;
 import com.cdx.bas.domain.bank.transaction.Transaction;
 import com.cdx.bas.domain.bank.transaction.TransactionPersistencePort;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
+import com.cdx.bas.domain.message.MessageFormatter;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import io.quarkus.panache.common.Parameters;
 import io.quarkus.panache.common.Sort;
@@ -13,34 +14,32 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
-import java.util.Optional;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.cdx.bas.domain.message.CommonMessages.*;
 
 /***
  * persistence implementation for Transaction entities
- * 
+ *
  * @author Clément Gibert
  *
  */
 
 @RequestScoped
 public class TransactionRepository implements TransactionPersistencePort, PanacheRepositoryBase<TransactionEntity, Long> {
-    
+
     private static final Logger logger = Logger.getLogger(TransactionRepository.class);
 
     @PersistenceContext
     private EntityManager entityManager;
-    
+
     @Inject
     TransactionMapper transactionMapper;
 
     @Override
     public Optional<Transaction> findById(long id) {
-        Optional<Transaction> transaction = findByIdOptional(id).map(transactionMapper::toDto);
-        return transaction;
+        return findByIdOptional(id).map(transactionMapper::toDto);
     }
 
     @Override
@@ -72,13 +71,14 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
     @Override
     public void create(Transaction transaction) {
         entityManager.persist(transactionMapper.toEntity(transaction));
-        logger.info("Transaction from " + transaction.getEmitterAccountId() + " to " + transaction.getReceiverAccountId() + " created");
+        logger.debug(MessageFormatter.format(TRANSACTION_CONTEXT, CREATION_ACTION, SUCCESS_STATUS, List.of(TRANSACTION_ID_DETAIL + transaction.getId())));
+
     }
 
     @Override
     public Transaction update(Transaction transaction) {
         entityManager.merge(transactionMapper.toEntity(transaction));
-        logger.info("Transaction " + transaction.getId() + " updated");
+        logger.debug(MessageFormatter.format(TRANSACTION_CONTEXT, UPDATE_ACTION, SUCCESS_STATUS, List.of(TRANSACTION_ID_DETAIL + transaction.getId())));
         return transaction;
     }
 
@@ -88,7 +88,7 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
         if (entityOptional.isPresent()) {
             TransactionEntity entity = entityOptional.get();
             delete(entity);
-            logger.info("Transaction " + entity.getId() + " deleted");
+            logger.debug(MessageFormatter.format(TRANSACTION_CONTEXT, DELETION_ACTION, SUCCESS_STATUS, List.of(TRANSACTION_ID_DETAIL + id)));
             return Optional.of(transactionMapper.toDto(entity));
         }
         return Optional.empty();

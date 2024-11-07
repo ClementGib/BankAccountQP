@@ -2,8 +2,9 @@ package com.cdx.bas.application.bank.transaction;
 
 import com.cdx.bas.domain.bank.transaction.*;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
-import com.cdx.bas.domain.bank.transaction.type.TransactionTypeProcessingServicePort;
+import com.cdx.bas.domain.bank.transaction.type.TransactionProcessorServicePort;
 import com.cdx.bas.domain.bank.transaction.validation.validator.TransactionValidator;
+import com.cdx.bas.domain.message.CommonMessages;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -13,8 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.cdx.bas.domain.bank.transaction.type.TransactionType.*;
-import static com.cdx.bas.domain.text.MessageConstants.DEPOSIT_OF_CONTENT;
-import static com.cdx.bas.domain.text.MessageConstants.WITHDRAW_OF_CONTENT;
+import static com.cdx.bas.domain.message.CommonMessages.DEPOSIT_DETAIL;
 
 @ApplicationScoped
 public class TransactionServiceImpl implements TransactionServicePort {
@@ -23,12 +23,12 @@ public class TransactionServiceImpl implements TransactionServicePort {
 
     private final TransactionValidator transactionValidator;
 
-    private final TransactionTypeProcessingServicePort transactionTypeProcessingService;
+    private final TransactionProcessorServicePort transactionTypeProcessingService;
 
     @Inject
     public TransactionServiceImpl(TransactionPersistencePort transactionRepository,
                                   TransactionValidator transactionValidator,
-                                  TransactionTypeProcessingServicePort transactionTypeProcessingService) {
+                                  TransactionProcessorServicePort transactionTypeProcessingService) {
         this.transactionRepository = transactionRepository;
         this.transactionValidator = transactionValidator;
         this.transactionTypeProcessingService = transactionTypeProcessingService;
@@ -81,8 +81,8 @@ public class TransactionServiceImpl implements TransactionServicePort {
     public void processDigitalTransaction(Transaction digitalTransaction) {
         if (CREDIT.equals(digitalTransaction.getType())) {
             transactionTypeProcessingService.credit(digitalTransaction);
-        } else if (DEPOSIT.equals(digitalTransaction.getType())) {
-            transactionTypeProcessingService.deposit(digitalTransaction);
+        } else if (DEBIT.equals(digitalTransaction.getType())) {
+            transactionTypeProcessingService.debit(digitalTransaction);
         }
     }
 
@@ -91,7 +91,7 @@ public class TransactionServiceImpl implements TransactionServicePort {
     public void deposit(NewCashTransaction newDepositTransaction) {
         Transaction depositTransaction = TransactionUtils.getNewCashTransaction(newDepositTransaction);
         depositTransaction.setType(DEPOSIT);
-        depositTransaction.setLabel(DEPOSIT_OF_CONTENT + newDepositTransaction.amount() + StringUtils.SPACE + newDepositTransaction.currency());
+        depositTransaction.setLabel(DEPOSIT_DETAIL + newDepositTransaction.amount() + StringUtils.SPACE + newDepositTransaction.currency());
         transactionTypeProcessingService.deposit(depositTransaction);
     }
 
@@ -100,7 +100,7 @@ public class TransactionServiceImpl implements TransactionServicePort {
     public void withdraw(NewCashTransaction newWithdrawTransaction) {
         Transaction withdrawTransaction = TransactionUtils.getNewCashTransaction(newWithdrawTransaction);
         withdrawTransaction.setType(WITHDRAW);
-        withdrawTransaction.setLabel(WITHDRAW_OF_CONTENT + newWithdrawTransaction.amount() + StringUtils.SPACE + newWithdrawTransaction.currency());
+        withdrawTransaction.setLabel(CommonMessages.WITHDRAW_DETAIL + newWithdrawTransaction.amount() + StringUtils.SPACE + newWithdrawTransaction.currency());
         transactionTypeProcessingService.withdraw(withdrawTransaction);
     }
 }

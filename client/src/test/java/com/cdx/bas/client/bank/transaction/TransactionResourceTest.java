@@ -144,13 +144,14 @@ class TransactionResourceTest {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("bill", "500,500");
         NewCashTransaction validNewTransaction =  new NewCashTransaction(2L, new BigDecimal("1000.00"), "EUR", metadata);
-        Transaction expectedCreatedTransaction = new Transaction(10L, 2L, null, new BigDecimal("1000.00"), "EUR", WITHDRAW, COMPLETED, timestampBefore, "Withdraw of 1000.00 EUR",
+        Transaction expectedCreatedTransaction = new Transaction(10L, 2L, null, new BigDecimal("1000.00"), "EUR", WITHDRAW, COMPLETED, timestampBefore, "withdraw:1000.00 EUR",
                 Map.of("emitter_amount_after", "600.00", "emitter_amount_before", "1600.00"));
 
         Response actualResponse = transactionResource.withdraw(validNewTransaction);
         Transaction actualTransaction = transactionResource.findById(10L);
         Instant timestampAfter = Instant.now();
-        assertThat(actualResponse.getEntity()).isEqualTo("Withdraw transaction accepted");
+        String expectedMessage = "Transaction: withdraw accepted";
+        assertThat(actualResponse.getEntity()).isEqualTo(expectedMessage);
         assertThat(actualTransaction)
                 .usingRecursiveComparison()
                 .ignoringFields("date")
@@ -183,13 +184,14 @@ class TransactionResourceTest {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("bill", "500,500");
         NewCashTransaction validNewTransaction =  new NewCashTransaction(1L, new BigDecimal("1000.00"), "EUR", metadata);
-        Transaction expectedCreatedTransaction = new Transaction(11L, 1L, null, new BigDecimal("1000.00"), "EUR", DEPOSIT, COMPLETED, timestampBefore, "Deposit of 1000.00 EUR",
+        Transaction expectedCreatedTransaction = new Transaction(11L, 1L, null, new BigDecimal("1000.00"), "EUR", DEPOSIT, COMPLETED, timestampBefore, "deposit:1000.00 EUR",
                 Map.of("emitter_amount_before", "400.00", "emitter_amount_after", "1400.00"));
 
        Response actualResponse = transactionResource.deposit(validNewTransaction);
        Transaction actualTransaction = transactionResource.findById(11L);
        Instant timestampAfter = Instant.now();
-       assertThat(actualResponse.getEntity()).isEqualTo("Deposit transaction accepted");
+        String expectedMessage = "Transaction: deposit accepted";
+        assertThat(actualResponse.getEntity()).isEqualTo(expectedMessage);
        assertThat(actualTransaction)
                .usingRecursiveComparison()
                .ignoringFields("date")

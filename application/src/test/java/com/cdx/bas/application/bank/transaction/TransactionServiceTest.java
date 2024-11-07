@@ -1,7 +1,7 @@
 package com.cdx.bas.application.bank.transaction;
 
 import com.cdx.bas.domain.bank.transaction.*;
-import com.cdx.bas.domain.bank.transaction.type.TransactionTypeProcessingServicePort;
+import com.cdx.bas.domain.bank.transaction.type.TransactionProcessorServicePort;
 import com.cdx.bas.domain.bank.transaction.validation.validator.TransactionValidator;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
@@ -30,10 +30,10 @@ class TransactionServiceTest {
 
     Clock clock = Mockito.mock(Clock.class);
     TransactionPersistencePort transactionRepository = Mockito.mock(TransactionPersistencePort.class);
-    TransactionTypeProcessingServicePort transactionTypeProcessingServicePort = Mockito.mock(TransactionTypeProcessingServicePort.class);
+    TransactionProcessorServicePort transactionProcessorServicePort = Mockito.mock(TransactionProcessorServicePort.class);
     TransactionValidator transactionValidator = Mockito.mock(TransactionValidator.class);
 
-	TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, transactionValidator, transactionTypeProcessingServicePort);
+	TransactionServiceImpl transactionService = new TransactionServiceImpl(transactionRepository, transactionValidator, transactionProcessorServicePort);
 
 
     @Test
@@ -197,8 +197,8 @@ class TransactionServiceTest {
         transactionService.processDigitalTransaction(transaction);
 
         // Assert
-        verify(transactionTypeProcessingServicePort).credit(transaction);
-        verifyNoMoreInteractions(transactionTypeProcessingServicePort);
+        verify(transactionProcessorServicePort).credit(transaction);
+        verifyNoMoreInteractions(transactionProcessorServicePort);
     }
 
     @Test
@@ -214,8 +214,8 @@ class TransactionServiceTest {
         transactionService.deposit(newTransaction);
 
         // Assert
-        verify(transactionTypeProcessingServicePort).deposit(any());
-        verifyNoMoreInteractions(transactionTypeProcessingServicePort);
+        verify(transactionProcessorServicePort).deposit(any());
+        verifyNoMoreInteractions(transactionProcessorServicePort);
     }
 
     @Test
@@ -256,7 +256,7 @@ class TransactionServiceTest {
         transactionService.withdraw(newTransaction);
 
         // Assert
-        verify(transactionTypeProcessingServicePort).withdraw(any());
-        verifyNoMoreInteractions(transactionTypeProcessingServicePort);
+        verify(transactionProcessorServicePort).withdraw(any());
+        verifyNoMoreInteractions(transactionProcessorServicePort);
     }
 }

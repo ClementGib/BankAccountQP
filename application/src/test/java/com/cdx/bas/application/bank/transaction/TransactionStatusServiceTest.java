@@ -54,7 +54,8 @@ class TransactionStatusServiceTest {
         try {
             transactionStatusServicePort.setAsOutstanding(transaction);
         } catch (TransactionException transactionException) {
-            assertThat(transactionException.getMessage()).isEqualTo("Transaction is not longer unprocessed.");
+            String expectedMessage = "Transaction: set status to outstanding no longer unprocessed\nStatus:ERROR";
+            assertThat(transactionException.getMessage()).isEqualTo(expectedMessage);
         }
     }
 
@@ -86,7 +87,8 @@ class TransactionStatusServiceTest {
         try {
             transactionStatusServicePort.saveStatus(null, COMPLETED, new HashMap<>());
         } catch (TransactionException transactionException) {
-            assertThat(transactionException.getMessage()).isEqualTo("Transaction is null.");
+            String expectedMessage = "Transaction: set status is null";
+            assertThat(transactionException.getMessage()).isEqualTo(expectedMessage);
         }
     }
 }
