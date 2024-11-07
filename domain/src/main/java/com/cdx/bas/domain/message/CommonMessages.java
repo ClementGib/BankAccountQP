@@ -1,6 +1,7 @@
 package com.cdx.bas.domain.message;
 
 import lombok.experimental.UtilityClass;
+
 @UtilityClass
 public class CommonMessages {
     // Context
@@ -37,6 +38,7 @@ public class CommonMessages {
     public static final String IN_PROGRESS_STATUS = "in progress...";
     public static final String SUCCESS_STATUS = "success";
     public static final String FAILED_STATUS = "failed";
+    public static final String REFUSED_STATUS = "refused";
     public static final String COMPLETED_STATUS = "completed";
     public static final String ACCEPTED_STATUS = "accepted";
     public static final String UNEXPECTED_STATUS = "unexpected error";
@@ -45,62 +47,23 @@ public class CommonMessages {
 
     // Cause
     public static final String NOT_FOUND_CAUSE = "not found";
+    public static final String TRANSACTION_ERROR_CAUSE = "transaction error";
+    public static final String BANK_ACCOUNT_ERROR_CAUSE = "bank account error";
     public static final String SHOULD_HAVE_POSITIVE_VALUE_CAUSE = "should have positive value";
+    public static final String UNEXPECTED_ERROR_CAUSE = "unexpected error";
 
     // Details
     public static final String QUEUE_DETAIL = "Queue size:";
-    public static final String ID_DETAIL = "Id:";
+    public static final String TRANSACTION_ID_DETAIL = "Transaction id:";
+    public static final String BANK_ACCOUNT_ID_DETAIL = "Bank account id:";
+    public static final String CUSTOMER_ID_DETAIL = "Customer id:";
     public static final String EURO_AMOUNT_DETAIL = "Euro amount:";
     public static final String STATUS_DETAIL = "Status:";
-
-
-
-    // Common words
-    public static final String BANK_ACCOUNT = "bank account";
-
-    // Transaction Content Messages
-    public static final String DEPOSIT_OF_CONTENT = "Deposit of ";
-    public static final String WITHDRAW_OF_CONTENT = "Withdraw of ";
-    public static final String DEBIT_OF_CONTENT = "Debit of ";
-    public static final String CREDIT_OF_CONTENT = "Credit of ";
-    public static final String FROM_BANK_ACCOUNT_CONTENT = " from bank account ";
-    public static final String TO_BANK_ACCOUNT_CONTENT = " to bank account ";
-    public static final String WITH_AMOUNT_CONTENT = " with amount ";
-    public static final String VALIDATED_END = " validated.";
-    public static final String PROCESSING_END = " processing...";
-    public static final String FOR_EMITTER = " for emitter ";
-
-    // Error Messages
-    public static final String ERROR_CAUSE = "Error missing: ";
-    public static final String ERROR_CREATING_ACCOUNT = "Error creating bank account.";
-    public static final String ERROR_UPDATING_ACCOUNT = "Error updating bank account.";
-    public static final String ERROR_DELETING_ACCOUNT = "Error deleting bank account.";
-    public static final String ERROR_READING_ACCOUNT = "Error reading bank account information.";
-
-    // Transaction-Specific Errors
-    public static final String INSUFFICIENT_FUNDS = "Insufficient funds for transaction.";
-    public static final String INVALID_TRANSACTION_TYPE = "Invalid transaction type specified.";
-    public static final String TRANSACTION_LIMIT_EXCEEDED = "Transaction limit exceeded.";
-    public static final String NEGATIVE_AMOUNT_ERROR = "Transaction amount cannot be negative.";
-    public static final String UNAUTHORIZED_ACCESS = "Unauthorized access to account.";
-    public static final String ACCOUNT_NOT_FOUND = "Specified bank account not found.";
-    public static final String TRANSACTION_NOT_FOUND = "Transaction record not found.";
-
-    // Successful Operation Messages
-    public static final String SUCCESSFUL_CREATION = "Bank account successfully created.";
-    public static final String SUCCESSFUL_UPDATE = "Bank account successfully updated.";
-    public static final String SUCCESSFUL_DELETION = "Bank account successfully deleted.";
-    public static final String SUCCESSFUL_READ = "Bank account information successfully retrieved.";
-
-    public static final String SUCCESSFUL_DEPOSIT = "Deposit transaction completed successfully.";
-    public static final String SUCCESSFUL_WITHDRAWAL = "Withdrawal transaction completed successfully.";
-    public static final String SUCCESSFUL_CREDIT = "Credit transaction completed successfully.";
-    public static final String SUCCESSFUL_DEBIT = "Debit transaction completed successfully.";
-
-    // Validation Messages
-    public static final String INVALID_AMOUNT = "Amount must be greater than zero.";
-    public static final String NULL_ACCOUNT_ERROR = "Bank account information cannot be null.";
-    public static final String ACCOUNT_LOCKED = "Bank account is locked. Please contact support.";
-    public static final String AMOUNT_EXCEEDS_LIMIT = "Amount exceeds allowed transaction limit.";
-
+    public static final String ERROR_DETAIL = "Error:";
+    public static final String EMITTER_BANK_ACCOUNT_DETAIL = "emitter bank account";
+    public static final String RECEIVER_BANK_ACCOUNT_DETAIL = "receiver bank account";
+    public static final String DEPOSIT_DETAIL = "deposit:";
+    public static final String WITHDRAW_DETAIL = "withdraw:";
+    public static final String DEBIT_DETAIL = "debit:";
+    public static final String CREDIT_DETAIL = "credit:";
 }

@@ -5,6 +5,7 @@ import lombok.experimental.UtilityClass;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Utility class for formatting standardized messages used in various operations, following the structure:
@@ -15,11 +16,10 @@ import java.util.Optional;
 @UtilityClass
 public class MessageFormatter {
 
-
     /**
      * A constant for a single space character used to separate message components.
      */
-    public static final String WHITE_SPACE = " ";
+    public static final String SEPARATOR = "-";
 
     /**
      * Formats a message with context, action, status, an optional cause, and optional details.
@@ -35,9 +35,17 @@ public class MessageFormatter {
      */
     public String format(String context, String action, String status, Optional<String> optionalCause, List<String> details) {
         StringBuilder message = new StringBuilder();
-        message.append(context).append(WHITE_SPACE).append(action).append(WHITE_SPACE).append(status);
+        message.append(context)
+                .append(StringUtils.SPACE)
+                .append(action)
+                .append(StringUtils.SPACE)
+                .append(status);
 
-        optionalCause.ifPresent(cause -> message.append(WHITE_SPACE).append(cause));
+        optionalCause.ifPresent(cause -> message
+                .append(StringUtils.SPACE)
+                .append(SEPARATOR)
+                .append(StringUtils.SPACE)
+                .append(cause));
 
         details.forEach(detail -> message.append(System.lineSeparator()).append(detail));
 

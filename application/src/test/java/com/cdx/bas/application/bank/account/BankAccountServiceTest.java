@@ -15,6 +15,7 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import org.assertj.core.api.AbstractStringAssert;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -102,15 +103,17 @@ class BankAccountServiceTest {
     @Test
     void shouldReturnNull_whenBankAccountDoesNotExist() {
         // Arrange
-        when(bankAccountRepository.findById(1L)).thenReturn(Optional.empty());
+        long id = 1L;
+        when(bankAccountRepository.findById(id)).thenReturn(Optional.empty());
 
         // Act
         try {
             bankAccountService.findBankAccount(1L);
-            fail("Bank acocunt does not exist");
+            fail("Bank account does not exist");
         } catch (BankAccountException exception) {
             // Assert
-            assertThat(exception).hasMessage("Missing bank account with id: 1");
+            String expectedMessage = "Bank account: searching failed - not found\nBank account id:" + id;
+            assertThat(exception).hasMessage(expectedMessage);
             verify(bankAccountRepository).findById(1L);
             verifyNoMoreInteractions(bankAccountRepository, bankAccountValidator);
             verifyNoInteractions(transactionService);
@@ -274,7 +277,8 @@ class BankAccountServiceTest {
             bankAccountService.creditAmountToAccounts(transaction, bankAccountEmitter, bankAccountReceiver);
         } catch (TransactionException exception) {
             // Assert
-            assertThat(exception.getMessage()).isEqualTo("Credit: 10 should have positive value, actual value: -100.0");
+            String expectedMessage = "Credit transaction: credit failed - should have positive value\nTransaction id:10\nEuro amount:-100.0";
+            assertThat(exception.getMessage()).isEqualTo(expectedMessage);
             verifyNoInteractions(transactionService, bankAccountValidator, bankAccountRepository);
         }
     }
@@ -334,7 +338,8 @@ class BankAccountServiceTest {
             bankAccountService.depositAmountToAccount(transaction, bankAccountEmitter);
         } catch (TransactionException exception) {
             // Assert
-            assertThat(exception.getMessage()).isEqualTo("Deposit: 10 should have positive value, actual value: -100.0");
+            String expectedMessage = "Debit transaction: debit failed - should have positive value\nTransaction id:10\nEuro amount:-100.0";
+            assertThat(exception.getMessage()).isEqualTo(expectedMessage);
             verifyNoInteractions(transactionService, bankAccountValidator, bankAccountRepository);
         }
     }
@@ -394,7 +399,8 @@ class BankAccountServiceTest {
             bankAccountService.withdrawAmountToAccount(transaction, bankAccountEmitter);
         } catch (TransactionException exception) {
             // Assert
-            assertThat(exception.getMessage()).isEqualTo("Withdraw: 10 should have positive value, actual value: -100.0");
+            String expectedMessage = "Withdraw transaction: withdraw failed - should have positive value\nTransaction id:10\nEuro amount:-100.0";
+            assertThat(exception.getMessage()).isEqualTo(expectedMessage);
             verifyNoInteractions(transactionService, bankAccountValidator, bankAccountRepository);
         }
     }

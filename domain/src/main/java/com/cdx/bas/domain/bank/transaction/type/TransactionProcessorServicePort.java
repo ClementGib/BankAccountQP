@@ -2,7 +2,7 @@ package com.cdx.bas.domain.bank.transaction.type;
 
 import com.cdx.bas.domain.bank.transaction.Transaction;
 
-public interface TransactionTypeProcessingServicePort {
+public interface TransactionProcessorServicePort {
 
     /**
      * Credit bank account with transaction according to its amount

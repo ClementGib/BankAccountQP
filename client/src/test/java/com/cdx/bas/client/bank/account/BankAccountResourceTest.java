@@ -110,7 +110,8 @@ class BankAccountResourceTest {
             bankAccountResource.findById(99L);
             fail();
         } catch (BankAccountException exception) {
-            assertThat(exception.getMessage()).isEqualTo("Missing bank account with id: 99");
+            String expectedMessage = "Bank account: searching failed - not found\nBank account id:99";
+            assertThat(exception.getMessage()).isEqualTo(expectedMessage);
         }
     }
 }

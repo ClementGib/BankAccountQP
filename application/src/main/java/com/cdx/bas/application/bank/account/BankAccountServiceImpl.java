@@ -55,8 +55,8 @@ public class BankAccountServiceImpl implements BankAccountServicePort {
     @Transactional
     public BankAccount findBankAccount(Long bankAccountId) {
         return bankAccountRepository.findById(bankAccountId)
-                .orElseThrow(() -> new BankAccountException(format(BANK_ACCOUNT_CONTEXT, UPDATE_ACTION, FAILED_STATUS,
-                        Optional.of(NOT_FOUND_CAUSE), List.of(ID_DETAIL + bankAccountId))));
+                .orElseThrow(() -> new BankAccountException(format(BANK_ACCOUNT_CONTEXT, SEARCHING_ACTION, FAILED_STATUS,
+                        Optional.of(NOT_FOUND_CAUSE), List.of(BANK_ACCOUNT_ID_DETAIL + bankAccountId))));
     }
 
     @Override
@@ -92,7 +92,7 @@ public class BankAccountServiceImpl implements BankAccountServicePort {
         if (isNotPositive(euroAmount)) {
             throw new TransactionException(format(CREDIT_TRANSACTION_CONTEXT, CREDIT_ACTION, FAILED_STATUS,
                     Optional.of(SHOULD_HAVE_POSITIVE_VALUE_CAUSE),
-                    List.of(ID_DETAIL + transaction.getId(), EURO_AMOUNT_DETAIL + euroAmount)));
+                    List.of(TRANSACTION_ID_DETAIL + transaction.getId(), EURO_AMOUNT_DETAIL + euroAmount)));
         }
         emitterBankAccount.getBalance().minus(Money.of(euroAmount));
         receiverBankAccount.getBalance().plus(Money.of(euroAmount));
@@ -104,7 +104,7 @@ public class BankAccountServiceImpl implements BankAccountServicePort {
         if (isNotPositive(euroAmount)) {
             throw new TransactionException(format(DEBIT_TRANSACTION_CONTEXT, DEBIT_ACTION, FAILED_STATUS,
                     Optional.of(SHOULD_HAVE_POSITIVE_VALUE_CAUSE),
-                    List.of(ID_DETAIL + transaction.getId(), EURO_AMOUNT_DETAIL + euroAmount)));
+                    List.of(TRANSACTION_ID_DETAIL + transaction.getId(), EURO_AMOUNT_DETAIL + euroAmount)));
         }
         emitterBankAccount.getBalance().plus(Money.of(euroAmount));
     }
@@ -115,10 +115,8 @@ public class BankAccountServiceImpl implements BankAccountServicePort {
         if (isNotPositive(euroAmount)) {
             throw new TransactionException(format(WITHDRAW_TRANSACTION_CONTEXT, WITHDRAW_ACTION, FAILED_STATUS,
                     Optional.of(SHOULD_HAVE_POSITIVE_VALUE_CAUSE),
-                    List.of(ID_DETAIL + transaction.getId(), EURO_AMOUNT_DETAIL + euroAmount)));
+                    List.of(TRANSACTION_ID_DETAIL + transaction.getId(), EURO_AMOUNT_DETAIL + euroAmount)));
         }
         emitterBankAccount.getBalance().minus(Money.of(euroAmount));
     }
-
-
 }

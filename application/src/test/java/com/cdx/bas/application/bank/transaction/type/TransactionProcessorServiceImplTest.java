@@ -1,4 +1,4 @@
-package com.cdx.bas.application.bank.transaction;
+package com.cdx.bas.application.bank.transaction.type;
 
 import com.cdx.bas.domain.bank.account.BankAccount;
 import com.cdx.bas.domain.bank.account.BankAccountException;
@@ -7,8 +7,8 @@ import com.cdx.bas.domain.bank.account.checking.CheckingBankAccount;
 import com.cdx.bas.domain.bank.transaction.Transaction;
 import com.cdx.bas.domain.bank.transaction.TransactionException;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatusServicePort;
+import com.cdx.bas.domain.bank.transaction.type.TransactionProcessorServicePort;
 import com.cdx.bas.domain.bank.transaction.type.TransactionType;
-import com.cdx.bas.domain.bank.transaction.type.TransactionTypeProcessingServicePort;
 import com.cdx.bas.domain.money.Money;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -26,10 +26,11 @@ import java.util.Set;
 import static com.cdx.bas.domain.bank.account.type.AccountType.CHECKING;
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-class TransactionTypeProcessingServiceTest {
+class TransactionProcessorServiceImplTest {
 
     @InjectMock
     TransactionStatusServicePort transactionStatusService;
@@ -38,7 +39,7 @@ class TransactionTypeProcessingServiceTest {
     BankAccountServicePort bankAccountService;
 
     @Inject
-    TransactionTypeProcessingServicePort transactionProcessingService;
+    TransactionProcessorServicePort transactionProcessingService;
 
     @Test
     void credit_shouldThrowNoSuchElementException_whenEmitterAccountIsNotFound() {
@@ -205,7 +206,7 @@ class TransactionTypeProcessingServiceTest {
         when(bankAccountService.putTransaction(completedTransaction, emitterBankAccount)).thenReturn(updatedEmitterBankAccount);
 
         // Act
-        Transaction returnedTransaction =  transactionProcessingService.credit(transaction);
+        Transaction returnedTransaction = transactionProcessingService.credit(transaction);
         receiverBankAccount.getBalance().plus(emitterBankAccount.getBalance());
         emitterBankAccount.getBalance().minus(emitterBankAccount.getBalance());
 

@@ -16,10 +16,10 @@ class MessageFormatterTest {
         String context = "Bank account:";
         String action = "creation";
         String status = "failed";
-        Optional<String> cause = Optional.of("missing required field 'account name'");
+        Optional<String> cause = Optional.of("missing required field 'name'");
         List<String> details = List.of("Detail: account id 1", "Detail: field required");
 
-        String expected = "Bank account: creation failed missing required field 'account name'"
+        String expected = "Bank account: creation failed - missing required field 'name'"
                 + System.lineSeparator() + "Detail: account id 1"
                 + System.lineSeparator() + "Detail: field required";
 
@@ -33,7 +33,7 @@ class MessageFormatterTest {
         String status = "failed";
         Optional<String> cause = Optional.of("insufficient funds");
 
-        String expected = "Transaction: debit failed insufficient funds";
+        String expected = "Transaction: debit failed - insufficient funds";
 
         assertThat(MessageFormatter.format(context, action, status, cause, Collections.emptyList())).isEqualTo(expected);
     }
@@ -65,9 +65,9 @@ class MessageFormatterTest {
         String context = "Transaction:";
         String action = "withdrawal";
         String status = "failed";
-        Optional<String> cause = Optional.of("account locked");
+        Optional<String> cause = Optional.of("should have positive value");
 
-        String expected = "Transaction: withdrawal failed account locked";
+        String expected = "Transaction: withdrawal failed - should have positive value";
 
         assertThat(MessageFormatter.format(context, action, status, cause)).isEqualTo(expected);
     }

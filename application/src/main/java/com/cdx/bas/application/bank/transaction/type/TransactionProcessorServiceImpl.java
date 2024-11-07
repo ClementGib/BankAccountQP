@@ -8,26 +8,26 @@ import com.cdx.bas.domain.bank.transaction.TransactionException;
 import com.cdx.bas.domain.bank.transaction.TransactionServicePort;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatusServicePort;
-import com.cdx.bas.domain.bank.transaction.type.TransactionTypeProcessingServicePort;
+import com.cdx.bas.domain.bank.transaction.type.TransactionProcessorServicePort;
 import com.cdx.bas.domain.bank.transaction.validation.validator.TransactionValidator;
+import com.cdx.bas.domain.message.MessageFormatter;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.*;
-import static com.cdx.bas.domain.metadata.MetadataFieldNames.*;
 import static com.cdx.bas.domain.message.CommonMessages.*;
+import static com.cdx.bas.domain.metadata.MetadataFieldNames.*;
+
 
 @ApplicationScoped
-public class TransactionTypeProcessingServiceImpl implements TransactionTypeProcessingServicePort {
+public class TransactionProcessorServiceImpl implements TransactionProcessorServicePort {
 
-    private static final Logger logger = LoggerFactory.getLogger(TransactionTypeProcessingServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(TransactionProcessorServiceImpl.class);
 
     private final TransactionValidator transactionValidator;
     private final TransactionStatusServicePort transactionStatusService;
@@ -35,7 +35,7 @@ public class TransactionTypeProcessingServiceImpl implements TransactionTypeProc
     private final BankAccountServicePort bankAccountService;
 
     @Inject
-    public TransactionTypeProcessingServiceImpl(TransactionValidator transactionValidator,
+    public TransactionProcessorServiceImpl(TransactionValidator transactionValidator,
                                                 TransactionStatusServicePort transactionStatusService,
                                                 TransactionServicePort transactionService,
                                                 BankAccountServicePort bankAccountService) {
@@ -51,13 +51,9 @@ public class TransactionTypeProcessingServiceImpl implements TransactionTypeProc
         Map<String, String> metadata = new HashMap<>();
         TransactionStatus transactionStatus = COMPLETED;
         try {
-            BankAccount emitterBankAccount = getEmitter(transaction);
+            BankAccount emitterBankAccount = bankAccountService.findBankAccount(transaction.getEmitterAccountId());
             BankAccount receiverBankAccount = bankAccountService.findBankAccount(transaction.getReceiverAccountId());
             Transaction currentTransaction = transactionStatusService.setAsOutstanding(transaction);
-
-            logger.info(DEBIT_OF_CONTENT + currentTransaction.getAmount()
-                    + FROM_BANK_ACCOUNT_CONTENT + currentTransaction.getEmitterAccountId()
-                    + TO_BANK_ACCOUNT_CONTENT + currentTransaction.getReceiverAccountId());
 
             metadata = new HashMap<>();
             metadata.put(EMITTER_AMOUNT_BEFORE_KEY, emitterBankAccount.getBalance().getAmount().toString());
@@ -69,39 +65,44 @@ public class TransactionTypeProcessingServiceImpl implements TransactionTypeProc
             Transaction completedTransaction = transactionStatusService.setStatus(currentTransaction, COMPLETED, metadata);
             bankAccountService.updateBankAccount(emitterBankAccount);
             bankAccountService.updateBankAccount(receiverBankAccount);
-            logger.info(BANK_ACCOUNT_CONTEXT + emitterBankAccount.getId() + " credit transaction " + currentTransaction.getId() + " completed.");
+
+            logger.debug(MessageFormatter.format(TRANSACTION_CONTEXT, CREDIT_ACTION, COMPLETED_STATUS,
+                    List.of(CREDIT_DETAIL + currentTransaction.getAmount(),
+                            EMITTER_BANK_ACCOUNT_DETAIL + currentTransaction.getEmitterAccountId(),
+                            RECEIVER_BANK_ACCOUNT_DETAIL + currentTransaction.getReceiverAccountId())));
             return completedTransaction;
         } catch (NoSuchElementException exception) {
-            logger.error(TRANSACTION_START + transaction.getId() + " credit error for amount " + transaction.getAmount() + ": " + exception.getMessage());
             metadata = Map.of(ERROR_KEY, exception.getMessage());
             transactionStatus = ERROR;
-            throw new TransactionException("Transaction error while credit transaction: " + exception.getMessage());
+            throw new TransactionException(MessageFormatter.format(TRANSACTION_CONTEXT, CREDIT_ACTION, FAILED_STATUS,
+                    Optional.of(NOT_FOUND_CAUSE),
+                    List.of(TRANSACTION_ID_DETAIL + transaction.getId(), ERROR_DETAIL + exception.getMessage())));
         } catch (TransactionException exception) {
-            logger.error(TRANSACTION_START + transaction.getId() + " of " + transaction.getAmount() + " is invalid.");
             metadata = Map.of(ERROR_KEY, exception.getMessage());
             transactionStatus = REFUSED;
-            throw new TransactionException("Transaction error while credit transaction: " + exception.getMessage());
+            throw new TransactionException(MessageFormatter.format(TRANSACTION_CONTEXT, CREDIT_ACTION, REFUSED_STATUS,
+                    Optional.of(TRANSACTION_ERROR_CAUSE),
+                    List.of(TRANSACTION_ID_DETAIL + transaction.getId(),
+                            ERROR_DETAIL + exception.getMessage())));
         } catch (BankAccountException exception) {
-            logger.error(TRANSACTION_START + transaction.getId() + " credit refused for amount " + transaction.getAmount() + ": " + exception.getMessage());
             metadata = Map.of(ERROR_KEY, exception.getMessage());
             transactionStatus = REFUSED;
-            throw new BankAccountException("Bank account refused while credit transaction: " + exception.getMessage());
+            throw new TransactionException(MessageFormatter.format(TRANSACTION_CONTEXT, CREDIT_ACTION, REFUSED_STATUS,
+                    Optional.of(BANK_ACCOUNT_ERROR_CAUSE),
+                    List.of(TRANSACTION_ID_DETAIL + transaction.getId(),
+                            ERROR_DETAIL + exception.getMessage())));
         } finally {
             transaction.setStatus(transactionStatus);
             transactionService.update(transaction, metadata);
         }
     }
 
-    private BankAccount getEmitter(Transaction transaction) {
-        logger.info(TRANSACTION_START + FOR_EMITTER + transaction.getEmitterAccountId() + PROCESSING_END);
-        return bankAccountService.findBankAccount(transaction.getEmitterAccountId());
-    }
-
     @Override
     public Transaction debit(Transaction currentTransaction) {
-        transactionValidator.validateCashTransaction(currentTransaction);
-        //TODO
-        return null;
+        //TODO feature#45
+        currentTransaction.setStatus(REFUSED);
+        transactionService.update(currentTransaction, new HashMap<>());
+        return currentTransaction;
     }
 
     @Override
@@ -111,10 +112,7 @@ public class TransactionTypeProcessingServiceImpl implements TransactionTypeProc
         TransactionStatus transactionStatus = COMPLETED;
         try {
             transactionValidator.validateCashTransaction(currentTransaction);
-            logger.info(DEPOSIT_OF_CONTENT + currentTransaction.getAmount() + VALIDATED_END);
-            BankAccount emitterBankAccount = getEmitter(currentTransaction);
-            logger.info(DEPOSIT_OF_CONTENT + currentTransaction.getAmount()
-                    + FROM_BANK_ACCOUNT_CONTENT + currentTransaction.getEmitterAccountId());
+            BankAccount emitterBankAccount = bankAccountService.findBankAccount(currentTransaction.getEmitterAccountId());
 
             metadata = new HashMap<>();
             metadata.put(EMITTER_AMOUNT_BEFORE_KEY, emitterBankAccount.getBalance().getAmount().toString());
@@ -122,17 +120,27 @@ public class TransactionTypeProcessingServiceImpl implements TransactionTypeProc
             metadata.put(EMITTER_AMOUNT_AFTER_KEY, emitterBankAccount.getBalance().getAmount().toString());
             Transaction completedTransaction = transactionStatusService.setStatus(currentTransaction, COMPLETED, metadata);
             bankAccountService.updateBankAccount(emitterBankAccount);
+
+            logger.debug(MessageFormatter.format(TRANSACTION_CONTEXT, DEPOSIT_ACTION, COMPLETED_STATUS,
+                    List.of(TRANSACTION_ID_DETAIL + currentTransaction.getId(),
+                            CREDIT_DETAIL + currentTransaction.getAmount(),
+                            EMITTER_BANK_ACCOUNT_DETAIL + currentTransaction.getEmitterAccountId(),
+                            RECEIVER_BANK_ACCOUNT_DETAIL + currentTransaction.getReceiverAccountId())));
             return completedTransaction;
         } catch (TransactionException exception) {
-            logger.error(TRANSACTION_START + currentTransaction.getId() + " of " + currentTransaction.getAmount() + " is invalid.");
             metadata = Map.of(ERROR_KEY, exception.getMessage());
             transactionStatus = REFUSED;
-            throw new TransactionException("Transaction error while deposit transaction: " + exception.getMessage());
+            throw new TransactionException(MessageFormatter.format(TRANSACTION_CONTEXT, DEPOSIT_ACTION, REFUSED_STATUS,
+                    Optional.of(TRANSACTION_ERROR_CAUSE),
+                    List.of(TRANSACTION_ID_DETAIL + currentTransaction.getId(),
+                            ERROR_DETAIL + exception.getMessage())));
         } catch (BankAccountException exception) {
-            logger.error(TRANSACTION_START + currentTransaction.getId() + " deposit refused for amount " + currentTransaction.getAmount() + ": " + exception.getMessage());
             metadata = Map.of(ERROR_KEY, exception.getMessage());
             transactionStatus = REFUSED;
-            throw new BankAccountException("Bank account refused while deposit transaction: " + exception.getMessage());
+            throw new TransactionException(MessageFormatter.format(TRANSACTION_CONTEXT, DEPOSIT_ACTION, REFUSED_STATUS,
+                    Optional.of(BANK_ACCOUNT_ERROR_CAUSE),
+                    List.of(TRANSACTION_ID_DETAIL + currentTransaction.getId(),
+                            ERROR_DETAIL + exception.getMessage())));
         } finally {
             currentTransaction.setStatus(transactionStatus);
             transactionService.create(currentTransaction, metadata);
@@ -146,32 +154,39 @@ public class TransactionTypeProcessingServiceImpl implements TransactionTypeProc
         TransactionStatus transactionStatus = COMPLETED;
         try {
             transactionValidator.validateCashTransaction(currentTransaction);
-            logger.info(WITHDRAW_OF_CONTENT + currentTransaction.getAmount() + VALIDATED_END);
-            BankAccount emitterBankAccount = getEmitter(currentTransaction);
-            logger.info(WITHDRAW_OF_CONTENT + currentTransaction.getAmount()
-                    + FROM_BANK_ACCOUNT_CONTENT + currentTransaction.getEmitterAccountId());
-
+            BankAccount emitterBankAccount = bankAccountService.findBankAccount(currentTransaction.getEmitterAccountId());
             metadata = new HashMap<>();
             metadata.put(EMITTER_AMOUNT_BEFORE_KEY, emitterBankAccount.getBalance().getAmount().toString());
             bankAccountService.withdrawAmountToAccount(currentTransaction, emitterBankAccount);
             metadata.put(EMITTER_AMOUNT_AFTER_KEY, emitterBankAccount.getBalance().getAmount().toString());
             Transaction completedTransaction = transactionStatusService.setStatus(currentTransaction, COMPLETED, metadata);
             bankAccountService.updateBankAccount(emitterBankAccount);
+
+            logger.debug(MessageFormatter.format(TRANSACTION_CONTEXT, WITHDRAW_ACTION, COMPLETED_STATUS,
+                    List.of(TRANSACTION_ID_DETAIL + currentTransaction.getId(),
+                            CREDIT_DETAIL + currentTransaction.getAmount(),
+                            EMITTER_BANK_ACCOUNT_DETAIL + currentTransaction.getEmitterAccountId(),
+                            RECEIVER_BANK_ACCOUNT_DETAIL + currentTransaction.getReceiverAccountId())));
             return completedTransaction;
         } catch (TransactionException exception) {
-            logger.error(TRANSACTION_START + currentTransaction.getId() + " of " + currentTransaction.getAmount() + " is invalid.");
             metadata = Map.of(ERROR_KEY, exception.getMessage());
             transactionStatus = REFUSED;
-            throw new TransactionException("Transaction error while withdrawing transaction: " + exception.getMessage());
+            throw new TransactionException(MessageFormatter.format(TRANSACTION_CONTEXT, WITHDRAW_ACTION, REFUSED_STATUS,
+                    Optional.of(TRANSACTION_ERROR_CAUSE),
+                    List.of(TRANSACTION_ID_DETAIL + currentTransaction.getId(),
+                            ERROR_DETAIL + exception.getMessage())));
         } catch (BankAccountException exception) {
-            logger.error(TRANSACTION_START + currentTransaction.getId() + " withdraw refused for amount " + currentTransaction.getAmount() + ": " + exception.getMessage());
             metadata = Map.of(ERROR_KEY, exception.getMessage());
             transactionStatus = REFUSED;
-            throw new BankAccountException("Bank account refused while withdrawing transaction: " + exception.getMessage());
+            throw new TransactionException(MessageFormatter.format(TRANSACTION_CONTEXT, WITHDRAW_ACTION, REFUSED_STATUS,
+                    Optional.of(BANK_ACCOUNT_ERROR_CAUSE),
+                    List.of(TRANSACTION_ID_DETAIL + currentTransaction.getId(),
+                            ERROR_DETAIL + exception.getMessage())));
         } finally {
             currentTransaction.setStatus(transactionStatus);
             transactionService.create(currentTransaction, metadata);
         }
     }
 }
+
 

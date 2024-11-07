@@ -3,6 +3,7 @@ package com.cdx.bas.application.bank.account;
 import com.cdx.bas.domain.bank.account.BankAccount;
 import com.cdx.bas.domain.bank.account.BankAccountException;
 import com.cdx.bas.domain.bank.account.BankAccountPersistencePort;
+import com.cdx.bas.domain.message.MessageFormatter;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -19,7 +20,7 @@ import static com.cdx.bas.domain.message.CommonMessages.*;
 
 /***
  * persistence implementation for BankAccount entities
- * 
+ *
  * @author Clément Gibert
  *
  */
@@ -55,11 +56,11 @@ public class BankAccountRepository implements BankAccountPersistencePort, Panach
     public Optional<BankAccount> findById(long id) {
         return findByIdOptional(id).map(bankAccountMapper::toDto);
     }
-    
+
     @Override
     public BankAccount create(BankAccount bankAccount) {
         entityManager.persist(bankAccountMapper.toEntity(bankAccount));
-        logger.debug(BANK_ACCOUNT_CONTEXT + "{}" + CREATION_ACTION, bankAccount.getId());
+        logger.debug(MessageFormatter.format(BANK_ACCOUNT_CONTEXT, CREATION_ACTION, SUCCESS_STATUS));
         return bankAccount;
     }
 
@@ -70,20 +71,20 @@ public class BankAccountRepository implements BankAccountPersistencePort, Panach
             getEntityManager();
             BankAccountEntity merge = entityManager.merge(entity);
             bankAccount = bankAccountMapper.toDto(merge);
-            logger.debug(BANK_ACCOUNT_CONTEXT + "{}" + UPDATE_ACTION, bankAccount.getId());
+            logger.debug(MessageFormatter.format(BANK_ACCOUNT_CONTEXT, UPDATE_ACTION, SUCCESS_STATUS));
             return bankAccount;
         } catch (UnsupportedOperationException exception) {
-            throw new BankAccountException(ERROR_UPDATING_ACCOUNT, exception);
+            throw new BankAccountException(MessageFormatter.format(BANK_ACCOUNT_CONTEXT, UPDATE_ACTION, FAILED_STATUS));
         }
     }
-    
+
     @Override
     public Optional<BankAccount> deleteById(long id) {
         Optional<BankAccountEntity> entityOptional = findByIdOptional(id);
         if (entityOptional.isPresent()) {
             BankAccountEntity entity = entityOptional.get();
             delete(entity);
-            logger.debug(BANK_ACCOUNT_CONTEXT + "{}" + DELETION_ACTION, entity.getId());
+            logger.debug(MessageFormatter.format(BANK_ACCOUNT_CONTEXT, DELETION_ACTION, SUCCESS_STATUS));
             return Optional.of(bankAccountMapper.toDto(entity));
         }
         return Optional.empty();
