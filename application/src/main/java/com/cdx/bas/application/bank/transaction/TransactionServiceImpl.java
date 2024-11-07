@@ -13,8 +13,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.cdx.bas.domain.bank.transaction.type.TransactionType.*;
-import static com.cdx.bas.domain.text.MessageConstants.DEPOSIT_OF_CONTENT;
-import static com.cdx.bas.domain.text.MessageConstants.WITHDRAW_OF_CONTENT;
+import static com.cdx.bas.domain.message.CommonMessages.DEPOSIT_OF_CONTENT;
+import static com.cdx.bas.domain.message.CommonMessages.WITHDRAW_OF_CONTENT;
 
 @ApplicationScoped
 public class TransactionServiceImpl implements TransactionServicePort {

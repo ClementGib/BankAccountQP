@@ -3,15 +3,18 @@ package com.cdx.bas.application.scheduler;
 import com.cdx.bas.domain.bank.transaction.Transaction;
 import com.cdx.bas.domain.bank.transaction.TransactionPersistencePort;
 import com.cdx.bas.domain.bank.transaction.TransactionServicePort;
+import com.cdx.bas.domain.message.MessageFormatter;
 import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import lombok.Getter;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
+import java.util.List;
 import java.util.PriorityQueue;
+
+import static com.cdx.bas.domain.message.CommonMessages.*;
 
 @Startup
 @Singleton
@@ -44,17 +47,17 @@ public class SchedulerImpl implements Scheduler {
     @Scheduled(every = "{scheduler.every}", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void processQueue() {
         if (isActivated()) {
-            logger.info("Scheduler start every " + getEvery());
+            logger.debug(MessageFormatter.format(SCHEDULER_CONTEXT, STARTING_ACTION, DONE_STATUS));
             if (getTransactionQueue().isEmpty()) {
                 getTransactionQueue().addAll(transactionRepository.findUnprocessedTransactions());
             }
 
-            logger.info("Queue size: " + transactionQueue.size());
+            logger.debug(MessageFormatter.format(SCHEDULER_CONTEXT, PROCESS_ACTION, IN_PROGRESS_STATUS, List.of(QUEUE_DETAIL + transactionQueue.size())));
             while (!getTransactionQueue().isEmpty()) {
                 Transaction currentTransation = getTransactionQueue().poll();
                 transactionService.processDigitalTransaction(currentTransation);
             }
-            logger.info("Scheduler end");
+            logger.debug(MessageFormatter.format(SCHEDULER_CONTEXT, ENDING_ACTION, DONE_STATUS));
         }
     }
 

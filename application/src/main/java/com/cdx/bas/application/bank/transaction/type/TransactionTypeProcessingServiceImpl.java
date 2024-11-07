@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.*;
-import static com.cdx.bas.domain.metadata.MetadataConstant.*;
-import static com.cdx.bas.domain.text.MessageConstants.*;
+import static com.cdx.bas.domain.metadata.MetadataFieldNames.*;
+import static com.cdx.bas.domain.message.CommonMessages.*;
 
 @ApplicationScoped
 public class TransactionTypeProcessingServiceImpl implements TransactionTypeProcessingServicePort {
@@ -69,7 +69,7 @@ public class TransactionTypeProcessingServiceImpl implements TransactionTypeProc
             Transaction completedTransaction = transactionStatusService.setStatus(currentTransaction, COMPLETED, metadata);
             bankAccountService.updateBankAccount(emitterBankAccount);
             bankAccountService.updateBankAccount(receiverBankAccount);
-            logger.info(BANK_ACCOUNT_START + emitterBankAccount.getId() + " credit transaction " + currentTransaction.getId() + " completed.");
+            logger.info(BANK_ACCOUNT_CONTEXT + emitterBankAccount.getId() + " credit transaction " + currentTransaction.getId() + " completed.");
             return completedTransaction;
         } catch (NoSuchElementException exception) {
             logger.error(TRANSACTION_START + transaction.getId() + " credit error for amount " + transaction.getAmount() + ": " + exception.getMessage());

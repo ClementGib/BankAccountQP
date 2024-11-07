@@ -3,6 +3,7 @@ package com.cdx.bas.application.bank.customer;
 
 import com.cdx.bas.domain.bank.customer.Customer;
 import com.cdx.bas.domain.bank.customer.CustomerPersistencePort;
+import com.cdx.bas.domain.message.MessageFormatter;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -10,9 +11,12 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.jboss.logging.Logger;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.cdx.bas.domain.message.CommonMessages.*;
 
 /***
  * persistence implementation for Customer entities
@@ -47,14 +51,14 @@ public class CustomerRepository implements CustomerPersistencePort, PanacheRepos
 	@Override
 	public Customer create(Customer customer) {
         persist(customerMapper.toEntity(customer));
-        logger.info("Customer " + customer.getId() + " created");
+        logger.debug(MessageFormatter.format(CUSTOMER_CONTEXT, CREATION_ACTION, SUCCESS_STATUS, List.of(ID_DETAIL + customer.getId())));
         return customer;
 	}
 
 	@Override
 	public Customer update(Customer customer) {
 	    persist(customerMapper.toEntity(customer));
-        logger.info("Customer " + customer.getId() + " updated");
+        logger.debug(MessageFormatter.format(CUSTOMER_CONTEXT, UPDATE_ACTION, SUCCESS_STATUS, List.of(ID_DETAIL + customer.getId())));
         return customer;
 	}
 
@@ -64,7 +68,7 @@ public class CustomerRepository implements CustomerPersistencePort, PanacheRepos
         if (entityOptional.isPresent()) {
             CustomerEntity entity = entityOptional.get();
             delete(entity);
-            logger.info("Customer " + entity.getId() + " deleted");
+            logger.debug(MessageFormatter.format(CUSTOMER_CONTEXT, DELETION_ACTION, SUCCESS_STATUS, List.of(ID_DETAIL + id)));
             return Optional.of(customerMapper.toDto(entity));
         }
         return Optional.empty();
