@@ -1,11 +1,13 @@
 package com.cdx.bas.domain.currency.rate;
 
 import com.cdx.bas.domain.currency.error.CurrencyException;
+import lombok.experimental.UtilityClass;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
+@UtilityClass
 public class ExchangeRateUtils {
     public static final String PIVOT_CURRENCY = "EUR";
     private static final Double NO_EXCHANGE_RATE_VALUE = 1.0;
