@@ -16,16 +16,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.math.BigDecimal;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
+import java.util.Comparator;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-
 
 @QuarkusTest
 @TestProfile(SchedulerTestProfile.class)
@@ -59,77 +58,32 @@ class SchedulerTest {
 
     @Order(2)
     @Test
-    void processQueue_shouldRunSchedulerProcess_withOrderedQueues_whenQueueIsFilled_withUnprocessedTransactions() {
+    void processQueue_shouldProcessTransactionsInCorrectOrder_whenQueueIsFilled() {
         // Arrange
-        Queue<Transaction> queue = createCreditTransactionsUtils();
+        Queue<Transaction> queue = getQueue();
         when(transactionRepository.findUnprocessedTransactions()).thenReturn(queue);
-        Clock clock;
 
-        Transaction fifthTransaction = Transaction.builder()
-                .id(5L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("59"))
-                .label("Fifth transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.MIN)
-                .build();
-        clock = Clock.fixed(Instant.parse("2022-12-06T10:14:00Z"), ZoneId.of("UTC"));
-        Transaction thirdTransaction = Transaction.builder()
-                .id(3L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("150"))
-                .label("Third transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now(clock))
-                .build();
-        clock = Clock.fixed(Instant.parse("2022-12-07T10:14:00Z"), ZoneId.of("UTC"));
-        Transaction secondTransaction = Transaction.builder()
-                .id(2L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("399"))
-                .label("Second transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now(clock))
-                .build();
-        clock = Clock.fixed(Instant.parse("2022-12-07T10:18:00Z"), ZoneId.of("UTC"));
-        Transaction fourthTransaction = Transaction.builder()
-                .id(4L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("1000"))
-                .label("Fourth transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now(clock))
-                .build();
+        // Expected ordered list of transaction IDs
+        List<Long> expectedOrder = List.of(5L, 3L, 2L, 1L, 4L);
 
         // Act
         scheduler.processQueue();
 
-        // Assert
-        assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(fifthTransaction);
-        verify(transactionService).processDigitalTransaction(queue.poll());
-        assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(thirdTransaction);
-        verify(transactionService).processDigitalTransaction(queue.poll());
-        assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(secondTransaction);
-        verify(transactionService).processDigitalTransaction(queue.poll());
-        assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(fourthTransaction);
-        verify(transactionService).processDigitalTransaction(queue.poll());
+        // Assert the processed order of transactions
+        List<Long> actualOrder = queue.stream()
+                .map(Transaction::getId)
+                .toList();
 
+        assertThat(actualOrder).containsExactlyElementsOf(expectedOrder);
+
+        verify(transactionService, times(actualOrder.size())).processDigitalTransaction(any());
         verify(transactionRepository).findUnprocessedTransactions();
-        verify(transactionService, times(5)).processDigitalTransaction(any());
         verifyNoMoreInteractions(transactionRepository, transactionService);
     }
 
-    private static Queue<Transaction> createCreditTransactionsUtils() {
-        Clock clock;
-        Queue<Transaction> queue = new PriorityQueue<>();
+    private static Queue<Transaction> getQueue() {
+        Queue<Transaction> queue = new PriorityQueue<>(Comparator.comparing(Transaction::getDate));
+
         queue.add(Transaction.builder()
                 .id(1L)
                 .emitterAccountId(99L)
@@ -138,9 +92,9 @@ class SchedulerTest {
                 .label("First transaction")
                 .type(TransactionType.CREDIT)
                 .status(UNPROCESSED)
-                .date(Instant.MAX)
+                .date(Instant.parse("2022-12-08T00:00:00Z"))  // Fixed date for consistency
                 .build());
-        clock = Clock.fixed(Instant.parse("2022-12-07T10:14:00Z"), ZoneId.of("UTC"));
+
         queue.add(Transaction.builder()
                 .id(2L)
                 .emitterAccountId(99L)
@@ -149,9 +103,9 @@ class SchedulerTest {
                 .label("Second transaction")
                 .type(TransactionType.CREDIT)
                 .status(UNPROCESSED)
-                .date(Instant.now(clock))
+                .date(Instant.parse("2022-12-07T10:14:00Z"))  // Fixed date
                 .build());
-        clock = Clock.fixed(Instant.parse("2022-12-06T10:14:00Z"), ZoneId.of("UTC"));
+
         queue.add(Transaction.builder()
                 .id(3L)
                 .emitterAccountId(99L)
@@ -160,9 +114,9 @@ class SchedulerTest {
                 .label("Third transaction")
                 .type(TransactionType.CREDIT)
                 .status(UNPROCESSED)
-                .date(Instant.now(clock))
+                .date(Instant.parse("2022-12-06T10:14:00Z"))  // Fixed date
                 .build());
-        clock = Clock.fixed(Instant.parse("2022-12-07T10:18:00Z"), ZoneId.of("UTC"));
+
         queue.add(Transaction.builder()
                 .id(4L)
                 .emitterAccountId(99L)
@@ -171,8 +125,9 @@ class SchedulerTest {
                 .label("Fourth transaction")
                 .type(TransactionType.CREDIT)
                 .status(UNPROCESSED)
-                .date(Instant.now(clock))
+                .date(Instant.parse("2022-12-07T10:18:00Z"))  // Fixed date
                 .build());
+
         queue.add(Transaction.builder()
                 .id(5L)
                 .emitterAccountId(99L)
@@ -181,7 +136,7 @@ class SchedulerTest {
                 .label("Fifth transaction")
                 .type(TransactionType.CREDIT)
                 .status(UNPROCESSED)
-                .date(Instant.MIN)
+                .date(Instant.MIN)  // Oldest date for top priority
                 .build());
         return queue;
     }

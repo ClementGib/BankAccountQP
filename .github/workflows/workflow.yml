@@ -21,7 +21,7 @@ jobs:
         cache: maven
 
     - name: Build with Maven and tests 
-      run: mvn -B package --file pom.xml
+      run: mvn -B test
 
     - name: Generate JaCoCo Badge
       id: jacoco
