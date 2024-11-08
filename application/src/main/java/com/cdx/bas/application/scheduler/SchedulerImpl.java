@@ -60,12 +60,7 @@ public class SchedulerImpl implements Scheduler {
             logger.debug(MessageFormatter.format(SCHEDULER_CONTEXT, ENDING_ACTION, DONE_STATUS));
         }
     }
-
     public boolean isActivated() {
         return activation;
-    }
-
-    public String getEvery() {
-        return every;
     }
 }

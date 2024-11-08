@@ -11,6 +11,8 @@ import com.cdx.bas.domain.bank.transaction.type.TransactionProcessorServicePort;
 import com.cdx.bas.domain.bank.transaction.type.TransactionType;
 import com.cdx.bas.domain.money.Money;
 import io.quarkus.test.InjectMock;
+import io.quarkus.test.common.WithTestResource;
+import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
+@WithTestResource(H2DatabaseTestResource.class)
 class TransactionProcessorServiceImplTest {
 
     @InjectMock

@@ -35,7 +35,7 @@ public abstract class BankAccount {
     @NotNull(message="issued transactions must not be null.")
     protected Set<Transaction> issuedTransactions = new HashSet<>();
     
-    public BankAccount(AccountType type) {
+    protected BankAccount(AccountType type) {
         this.type = type;
     }
 }

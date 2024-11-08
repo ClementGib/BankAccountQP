@@ -25,8 +25,8 @@ public class TransactionEntity extends PanacheEntityBase {
     @SequenceGenerator(name = "transactions_transaction_id_seq_gen", sequenceName = "transactions_transaction_id_seq", allocationSize = 1, initialValue = 1)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "emitter_account_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "emitter_account_id")
     private BankAccountEntity emitterBankAccountEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)

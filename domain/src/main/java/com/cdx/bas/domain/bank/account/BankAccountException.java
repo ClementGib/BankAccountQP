@@ -1,6 +1,6 @@
 package com.cdx.bas.domain.bank.account;
 
-import com.cdx.bas.domain.DomainException;
+import com.cdx.bas.domain.exception.DomainException;
 
 public class BankAccountException extends DomainException {
 

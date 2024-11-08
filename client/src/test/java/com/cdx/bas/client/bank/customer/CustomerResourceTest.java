@@ -1,7 +1,7 @@
 package com.cdx.bas.client.bank.customer;
 
 import com.cdx.bas.domain.bank.customer.Customer;
-import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import static com.cdx.bas.domain.bank.customer.gender.Gender.FEMALE;
@@ -19,7 +18,7 @@ import static com.cdx.bas.domain.bank.customer.maritalstatus.MaritalStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
-@QuarkusTestResource(H2DatabaseTestResource.class)
+@WithTestResource(H2DatabaseTestResource.class)
 class CustomerResourceTest {
 
     @Inject

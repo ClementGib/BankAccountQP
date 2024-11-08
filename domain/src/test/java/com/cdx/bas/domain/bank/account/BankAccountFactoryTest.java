@@ -1,6 +1,7 @@
 package com.cdx.bas.domain.bank.account;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import com.cdx.bas.domain.bank.account.checking.CheckingBankAccount;
 import com.cdx.bas.domain.bank.account.mma.MMABankAccount;
@@ -11,43 +12,65 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
 
-@QuarkusTest
-public class BankAccountFactoryTest {
-    
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
+class BankAccountFactoryTest {
+
     @Test
-    public void createBankAccount_shouldReturnNull_whenAccountTypeIsNull() {
-        // Act
-        try {
-            BankAccountFactory.createBankAccount(null);
-        } catch (IllegalArgumentException exception) {
-            assertThat(exception.getMessage()).isEqualTo("Unexpected account type null");
-        }
+    void createBankAccount_shouldReturnNull_whenAccountTypeIsNull() {
+        // Act & Assert
+        assertThatThrownBy(() -> BankAccountFactory.createBankAccount(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Unexpected account type null");
     }
 
     @Test
-    public void createBankAccount_shouldReturnCheckingBankAccountInstance_whenAccountTypeIsChecking() {
+    void createBankAccount_shouldReturnCheckingBankAccountInstance_whenAccountTypeIsChecking() {
         // Act
         BankAccount bankAccount = BankAccountFactory.createBankAccount(AccountType.CHECKING);
 
         // Assert
         assertThat(bankAccount).isInstanceOf(CheckingBankAccount.class);
     }
-    
+
     @Test
-    public void createBankAccount_shouldReturnSavingBankAccountInstance_whenAccountTypeIsSaving() {
+    void createBankAccount_shouldReturnSavingBankAccountInstance_whenAccountTypeIsSaving() {
         // Act
         BankAccount bankAccount = BankAccountFactory.createBankAccount(AccountType.SAVING);
 
         // Assert
         assertThat(bankAccount).isInstanceOf(SavingBankAccount.class);
     }
-    
+
     @Test
-    public void createBankAccount_shouldReturnMMABankAccountInstance_whenAccountTypeIsMMA() {
+    void createBankAccount_shouldReturnMMABankAccountInstance_whenAccountTypeIsMMA() {
         // Act
         BankAccount bankAccount = BankAccountFactory.createBankAccount(AccountType.MMA);
 
         // Assert
         assertThat(bankAccount).isInstanceOf(MMABankAccount.class);
+    }
+
+    @Test
+    void createBankAccount_shouldThrowException_whenAccountTypeIsUnknown() {
+        // Act & Assert
+        assertThatThrownBy(() -> BankAccountFactory.createBankAccount(AccountType.OTHER))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Unexpected account type OTHER");
+    }
+
+    @Test
+    void constructor_shouldThrowException_whenInvoked() throws NoSuchMethodException {
+        // Arrange
+        Constructor<BankAccountFactory> constructor = BankAccountFactory.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+
+        // Act & Assert
+        assertThatThrownBy(constructor::newInstance)
+                .isInstanceOf(InvocationTargetException.class)
+                .getCause()
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Utility class");
     }
 }

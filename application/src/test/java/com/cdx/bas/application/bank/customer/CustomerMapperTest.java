@@ -14,7 +14,7 @@ import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import com.cdx.bas.domain.bank.transaction.type.TransactionType;
 import com.cdx.bas.domain.money.Money;
 import io.quarkus.test.InjectMock;
-import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -34,8 +34,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-@QuarkusTestResource(H2DatabaseTestResource.class)
-public class CustomerMapperTest {
+@WithTestResource(H2DatabaseTestResource.class)
+class CustomerMapperTest {
 
     @InjectMock
     BankAccountMapper bankAccountMapper;
@@ -44,7 +44,7 @@ public class CustomerMapperTest {
     CustomerMapper customerMapper;
     
     @Test
-    public void toDto_shouldReturnNullDto_whenEntityIsNull() {
+    void toDto_shouldReturnNullDto_whenEntityIsNull() {
         // Act
         Customer dto = customerMapper.toDto(null);
 
@@ -54,7 +54,7 @@ public class CustomerMapperTest {
     }
 
     @Test
-    public void toEntity_shouldReturnNullEntity_whenDtoIsNull() {
+    void toEntity_shouldReturnNullEntity_whenDtoIsNull() {
         // Act
         CustomerEntity entity = customerMapper.toEntity(null);
 
@@ -64,7 +64,7 @@ public class CustomerMapperTest {
     }
     
 	@Test
-	public void toDto_shouldMapNullValues_whenEntityValuesNotDefined() {
+	void toDto_shouldMapNullValues_whenEntityValuesNotDefined() {
         // Act
         Customer dto = customerMapper.toDto(new CustomerEntity());
 
@@ -88,7 +88,7 @@ public class CustomerMapperTest {
     }
     
     @Test
-    public void toEntity_shouldMapNullValues_whenDtoValuesNotDefined() {
+    void toEntity_shouldMapNullValues_whenDtoValuesNotDefined() {
         // Act
         CustomerEntity entity = customerMapper.toEntity(new Customer());
 
@@ -111,7 +111,7 @@ public class CustomerMapperTest {
     }
     
 	@Test
-	public void toDto_shouldMapDtoValues_whenEntityHasValues() {
+	void toDto_shouldMapDtoValues_whenEntityHasValues() {
         // Arrange
         CustomerEntity entity = new CustomerEntity();
         entity.setId(1L);
@@ -169,7 +169,7 @@ public class CustomerMapperTest {
     }
     
     @Test
-    public void toEntity_shouldMapEntityValues_whenDtoHasValues() {
+    void toEntity_shouldMapEntityValues_whenDtoHasValues() {
         // Arrange
         Customer model = new Customer();
         model.setId(1L);
