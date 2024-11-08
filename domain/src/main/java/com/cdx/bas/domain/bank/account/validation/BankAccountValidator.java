@@ -12,9 +12,13 @@ import jakarta.validation.Validator;
 @RequestScoped
 public class BankAccountValidator {
 
-    @Inject
     Validator validator;
-    
+
+    @Inject
+    public BankAccountValidator(Validator validator) {
+        this.validator = validator;
+    }
+
     public void validateBankAccount(BankAccount bankAccount) throws BankAccountException {
         Set<ConstraintViolation<BankAccount>> violations = validator.validate(bankAccount);
         if (!violations.isEmpty()) {

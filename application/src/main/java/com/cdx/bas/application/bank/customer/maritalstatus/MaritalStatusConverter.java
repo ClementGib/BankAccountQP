@@ -13,6 +13,9 @@ public class MaritalStatusConverter implements AttributeConverter<MaritalStatus,
 
     @Override
     public Character convertToDatabaseColumn(MaritalStatus maritalStatus) {
+        if (maritalStatus == null) {
+            return null;  // Handle null maritalStatus by returning null
+        }
         return switch (maritalStatus) {
             case SINGLE -> strSingle;
             case MARRIED -> strMarried;
@@ -24,6 +27,9 @@ public class MaritalStatusConverter implements AttributeConverter<MaritalStatus,
 
     @Override
     public MaritalStatus convertToEntityAttribute(Character maritalCode) {
+        if (maritalCode == null) {
+            return null;  // Handle null maritalCode by returning null
+        }
         return switch (maritalCode) {
             case strSingle -> SINGLE;
             case strMarried -> MARRIED;

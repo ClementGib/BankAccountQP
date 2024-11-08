@@ -9,7 +9,7 @@ import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.TransactionManager;
+import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,16 +32,13 @@ public class BankAccountRepository implements BankAccountPersistencePort, Panach
 
     BankAccountMapper bankAccountMapper;
 
-    TransactionManager transactionManager;
-
-    EntityManager entityManager;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Inject
     public BankAccountRepository(BankAccountMapper bankAccountMapper,
-                                 TransactionManager transactionManager,
                                  EntityManager entityManager) {
         this.bankAccountMapper = bankAccountMapper;
-        this.transactionManager = transactionManager;
         this.entityManager = entityManager;
     }
 
@@ -59,7 +56,8 @@ public class BankAccountRepository implements BankAccountPersistencePort, Panach
 
     @Override
     public BankAccount create(BankAccount bankAccount) {
-        entityManager.persist(bankAccountMapper.toEntity(bankAccount));
+        BankAccountEntity entity = bankAccountMapper.toEntity(bankAccount);
+        persist(entity);
         logger.debug(MessageFormatter.format(BANK_ACCOUNT_CONTEXT, CREATION_ACTION, SUCCESS_STATUS));
         return bankAccount;
     }
@@ -67,10 +65,7 @@ public class BankAccountRepository implements BankAccountPersistencePort, Panach
     @Override
     public BankAccount update(BankAccount bankAccount) {
         try {
-            BankAccountEntity entity = bankAccountMapper.toEntity(bankAccount);
-            getEntityManager();
-            BankAccountEntity merge = entityManager.merge(entity);
-            bankAccount = bankAccountMapper.toDto(merge);
+            bankAccount = bankAccountMapper.toDto(entityManager.merge(bankAccountMapper.toEntity(bankAccount)));
             logger.debug(MessageFormatter.format(BANK_ACCOUNT_CONTEXT, UPDATE_ACTION, SUCCESS_STATUS));
             return bankAccount;
         } catch (UnsupportedOperationException exception) {
@@ -84,7 +79,8 @@ public class BankAccountRepository implements BankAccountPersistencePort, Panach
         if (entityOptional.isPresent()) {
             BankAccountEntity entity = entityOptional.get();
             delete(entity);
-            logger.debug(MessageFormatter.format(BANK_ACCOUNT_CONTEXT, DELETION_ACTION, SUCCESS_STATUS));
+            logger.debug(MessageFormatter.format(BANK_ACCOUNT_CONTEXT, DELETION_ACTION, SUCCESS_STATUS,
+                    List.of(BANK_ACCOUNT_ID_DETAIL + id)));
             return Optional.of(bankAccountMapper.toDto(entity));
         }
         return Optional.empty();

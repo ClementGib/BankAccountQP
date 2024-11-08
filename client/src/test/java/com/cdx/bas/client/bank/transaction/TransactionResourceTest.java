@@ -2,7 +2,7 @@ package com.cdx.bas.client.bank.transaction;
 
 import com.cdx.bas.domain.bank.transaction.NewCashTransaction;
 import com.cdx.bas.domain.bank.transaction.Transaction;
-import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@QuarkusTestResource(H2DatabaseTestResource.class)
+@WithTestResource(H2DatabaseTestResource.class)
 class TransactionResourceTest {
 
     @Inject

@@ -5,6 +5,8 @@ import com.cdx.bas.domain.bank.transaction.TransactionPersistencePort;
 import com.cdx.bas.domain.bank.transaction.TransactionServicePort;
 import com.cdx.bas.domain.bank.transaction.type.TransactionType;
 import io.quarkus.test.InjectMock;
+import io.quarkus.test.common.WithTestResource;
+import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
@@ -28,7 +30,8 @@ import static org.mockito.Mockito.*;
 @QuarkusTest
 @TestProfile(SchedulerTestProfile.class)
 @TestMethodOrder(OrderAnnotation.class)
-public class SchedulerTest {
+@WithTestResource(H2DatabaseTestResource.class)
+class SchedulerTest {
 
     @InjectMock
     TransactionServicePort transactionService;
@@ -41,7 +44,7 @@ public class SchedulerTest {
 
     @Order(1)
     @Test
-    public void processQueue_shouldFillTheQueue_whenQueueWasEmpty() {
+    void processQueue_shouldFillTheQueue_whenQueueWasEmpty() {
         // Arrange
         when(transactionRepository.findUnprocessedTransactions()).thenReturn(new PriorityQueue<>());
 
@@ -53,10 +56,10 @@ public class SchedulerTest {
         verifyNoMoreInteractions(transactionRepository);
         verifyNoInteractions(transactionService);
     }
-    
+
     @Order(2)
     @Test
-    public void processQueue_shouldRunSchedulerProcess_withOrderedQueues_whenQueueIsFilled_withUnprocessedTransactions() {
+    void processQueue_shouldRunSchedulerProcess_withOrderedQueues_whenQueueIsFilled_withUnprocessedTransactions() {
         // Arrange
         Queue<Transaction> queue = createCreditTransactionsUtils();
         when(transactionRepository.findUnprocessedTransactions()).thenReturn(queue);

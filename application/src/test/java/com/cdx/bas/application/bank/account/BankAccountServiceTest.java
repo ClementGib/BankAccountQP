@@ -11,16 +11,18 @@ import com.cdx.bas.domain.bank.transaction.TransactionException;
 import com.cdx.bas.domain.bank.transaction.TransactionServicePort;
 import com.cdx.bas.domain.money.Money;
 import io.quarkus.test.InjectMock;
-import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import org.assertj.core.api.AbstractStringAssert;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.cdx.bas.domain.bank.account.type.AccountType.CHECKING;
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.ERROR;
@@ -31,7 +33,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-@QuarkusTestResource(H2DatabaseTestResource.class)
+@WithTestResource(H2DatabaseTestResource.class)
 class BankAccountServiceTest {
 
     @InjectMock

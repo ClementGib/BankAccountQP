@@ -1,25 +1,22 @@
 package com.cdx.bas.domain.money;
 
-import com.cdx.bas.domain.money.Money;
-import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@QuarkusTest
-public class MoneyTest {
+class MoneyTest {
 
     @Test
-    public void Money_shouldInstantiateMoneyWithAmountValue_whenAmountValueIsAPositiveNumber() {
+    void Money_shouldInstantiateMoneyWithAmountValue_whenAmountValueIsAPositiveNumber() {
         Money money = new Money(new BigDecimal("100"));
 
         assertThat(money.getAmount()).isEqualTo("100");
     }
 
     @Test
-    public void Money_shouldInstantiateMoneyWithAmountValue_whenAmountValueIsANegativeNumber() {
+    void Money_shouldInstantiateMoneyWithAmountValue_whenAmountValueIsANegativeNumber() {
         double amount = -100.00;
         Money money = new Money(new BigDecimal(amount));
 
@@ -27,7 +24,7 @@ public class MoneyTest {
     }
     
     @Test
-    public void of_shouldReturnMoneyWithAmountOfValue_whenValueIsAPositiveNumber() {
+    void of_shouldReturnMoneyWithAmountOfValue_whenValueIsAPositiveNumber() {
         double amount = 100.00;
         BigDecimal value = new BigDecimal(amount);
 
@@ -37,7 +34,7 @@ public class MoneyTest {
     }
     
     @Test
-    public void of_shouldReturnMoneyWithAmountOfValue_whenValueIsANegativeNumber() {
+    void of_shouldReturnMoneyWithAmountOfValue_whenValueIsANegativeNumber() {
         double amount = -100.00;
         BigDecimal value = new BigDecimal(amount);
 
@@ -47,7 +44,7 @@ public class MoneyTest {
     }
 
     @Test
-    public void minus_shouldSubtractAmount_whenAmountIsPositiveAndValueIsPositive() {
+    void minus_shouldSubtractAmount_whenAmountIsPositiveAndValueIsPositive() {
         Money moneyOne = new Money(new BigDecimal("100"));
         Money moneyTwo = new Money(new BigDecimal("100"));
 
@@ -56,7 +53,7 @@ public class MoneyTest {
     }
 
     @Test
-    public void minus_shouldSubtractAmount_whenAmountIsZeroAndValueIsPositive() {
+    void minus_shouldSubtractAmount_whenAmountIsZeroAndValueIsPositive() {
         Money moneyOne = new Money(new BigDecimal("0"));
         Money moneyTwo = new Money(new BigDecimal("100"));
 
@@ -66,7 +63,7 @@ public class MoneyTest {
     }
 
     @Test
-    public void minus_shouldAdditionAmount_whenValuesIsNegative() {
+    void minus_shouldAdditionAmount_whenValuesIsNegative() {
         Money moneyOne = new Money(new BigDecimal("-100"));
         Money moneyTwo = new Money(new BigDecimal("-100"));
 
@@ -76,7 +73,7 @@ public class MoneyTest {
     }
 
     @Test
-    public void plus_shouldAdditionAmount_whenAmountIsPositiveAndValueIsPositive() {
+    void plus_shouldAdditionAmount_whenAmountIsPositiveAndValueIsPositive() {
         Money moneyOne = new Money(new BigDecimal("100"));
         Money moneyTwo = new Money(new BigDecimal("100"));
 
@@ -86,7 +83,7 @@ public class MoneyTest {
     }
 
     @Test
-    public void plus_shouldAdditionAmount_whenAmountIsZeroAndValueIsPositive() {
+    void plus_shouldAdditionAmount_whenAmountIsZeroAndValueIsPositive() {
         Money moneyOne = new Money(new BigDecimal("0"));
         Money moneyTwo = new Money(new BigDecimal("100"));
 
@@ -96,7 +93,7 @@ public class MoneyTest {
     }
 
     @Test
-    public void plus_shouldAdditionAmount_whenValuesIsNegative() {
+    void plus_shouldAdditionAmount_whenValuesIsNegative() {
         Money moneyOne = new Money(new BigDecimal("-100"));
         Money moneyTwo = new Money(new BigDecimal("-100"));
 
@@ -106,13 +103,13 @@ public class MoneyTest {
     }
 
     @Test
-    public void isPositive_shouldReturnTrue_whenAmountValueIsGreaterToZero() {
+    void isPositive_shouldReturnTrue_whenAmountValueIsGreaterToZero() {
         Money money = new Money(new BigDecimal("100"));
         assertThat(money.isPositive()).isTrue();
     }
 
     @Test
-    public void isPositive_shouldReturnFalse_whenAmountValueIsLessToZero() {
+    void isPositive_shouldReturnFalse_whenAmountValueIsLessToZero() {
         Money money = new Money(new BigDecimal("-100"));
 
         money.isPositive();
@@ -121,21 +118,21 @@ public class MoneyTest {
     }
 
     @Test
-    public void isPositiveOrZero_shouldReturnTrue_whenAmountValueIsGreaterToZero() {
+    void isPositiveOrZero_shouldReturnTrue_whenAmountValueIsGreaterToZero() {
         Money money = new Money(new BigDecimal("100"));
 
         assertThat(money.isPositiveOrZero()).isTrue();
     }
 
     @Test
-    public void isPositiveOrZero_shouldReturnTrue_whenAmountValueIsEqualToZero() {
+    void isPositiveOrZero_shouldReturnTrue_whenAmountValueIsEqualToZero() {
         Money money = new Money(new BigDecimal("0"));
 
         assertThat(money.isPositiveOrZero()).isTrue();
     }
 
     @Test
-    public void isPositiveOrZero_shouldReturnFalse_whenAmountValueIsLessToZero() {
+    void isPositiveOrZero_shouldReturnFalse_whenAmountValueIsLessToZero() {
         Money money = new Money(new BigDecimal("-100"));
 
         money.isPositive();
@@ -144,21 +141,21 @@ public class MoneyTest {
     }
 
     @Test
-    public void isNegative_shouldReturnTrue_whenAmountValueIsLessToZero() {
+    void isNegative_shouldReturnTrue_whenAmountValueIsLessToZero() {
         Money money = new Money(new BigDecimal("-100"));
 
         assertThat(money.isNegative()).isTrue();
     }
 
     @Test
-    public void isNegative_shouldReturnFalse_whenAmountValueIsGreaterToZero() {
+    void isNegative_shouldReturnFalse_whenAmountValueIsGreaterToZero() {
         Money money = new Money(new BigDecimal("100"));
 
         assertThat(money.isNegative()).isFalse();
     }
 
     @Test
-    public void isGreaterThan_shouldReturnTrue_whenAmountValueIsGreaterThanAmountParameter() {
+    void isGreaterThan_shouldReturnTrue_whenAmountValueIsGreaterThanAmountParameter() {
         Money moneyOne = new Money(new BigDecimal("100"));
         Money moneyTwo = new Money(new BigDecimal("50"));
 
@@ -166,7 +163,7 @@ public class MoneyTest {
     }
 
     @Test
-    public void isGreaterThan_shouldReturnFalse_whenAmountValueIsLessThanAmountParameter() {
+    void isGreaterThan_shouldReturnFalse_whenAmountValueIsLessThanAmountParameter() {
         Money moneyOne = new Money(new BigDecimal("50"));
         Money moneyTwo = new Money(new BigDecimal("100"));
 
@@ -174,7 +171,7 @@ public class MoneyTest {
     }
 
     @Test
-    public void isGreaterThan_shouldReturnFalse_whenAmountValueIsEqualToAmountParameter() {
+    void isGreaterThan_shouldReturnFalse_whenAmountValueIsEqualToAmountParameter() {
         Money moneyOne = new Money(new BigDecimal("100"));
         Money moneyTwo = new Money(new BigDecimal("100"));
 
@@ -182,7 +179,7 @@ public class MoneyTest {
     }
 
     @Test
-    public void isGreaterThanOrEqual_shouldReturnTrue_whenAmountValueIsGreaterThanAmountParameter() {
+    void isGreaterThanOrEqual_shouldReturnTrue_whenAmountValueIsGreaterThanAmountParameter() {
         Money moneyOne = new Money(new BigDecimal("100"));
         Money moneyTwo = new Money(new BigDecimal("50"));
 
@@ -190,7 +187,7 @@ public class MoneyTest {
     }
 
     @Test
-    public void isGreaterThanOrEqual_shouldReturnFalse_whenAmountValueIsLessThanAmountParameter() {
+    void isGreaterThanOrEqual_shouldReturnFalse_whenAmountValueIsLessThanAmountParameter() {
         Money moneyOne = new Money(new BigDecimal("50"));
         Money moneyTwo = new Money(new BigDecimal("100"));
 
@@ -198,7 +195,7 @@ public class MoneyTest {
     }
 
     @Test
-    public void isGreaterThanOrEqual_shouldReturnTrue_whenAmountValueIsEqualToAmountParameter() {
+    void isGreaterThanOrEqual_shouldReturnTrue_whenAmountValueIsEqualToAmountParameter() {
         Money moneyOne = new Money(new BigDecimal("100"));
         Money moneyTwo = new Money(new BigDecimal("100"));
 

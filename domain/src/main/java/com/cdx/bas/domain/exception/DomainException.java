@@ -1,4 +1,4 @@
-package com.cdx.bas.domain;
+package com.cdx.bas.domain.exception;
 
 public class DomainException extends RuntimeException {
 

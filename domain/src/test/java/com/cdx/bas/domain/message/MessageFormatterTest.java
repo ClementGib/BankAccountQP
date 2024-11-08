@@ -10,7 +10,6 @@ import static com.cdx.bas.domain.message.CommonMessages.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MessageFormatterTest {
-
     @Test
     void should_formatMessageWithAllArgs() {
         String context = "Bank account:";
@@ -39,14 +38,14 @@ class MessageFormatterTest {
     }
 
     @Test
-    void should_formatMessageWithDetails() {
+    void should_formatMessageWithDetailsOnly() {
         List<String> details = List.of("Detail: account id 2", "Detail: credited amount $500");
 
         String expected = "Transaction: credit completed"
                 + System.lineSeparator() + "Detail: account id 2"
                 + System.lineSeparator() + "Detail: credited amount $500";
 
-        assertThat(MessageFormatter.format(TRANSACTION_CONTEXT, CREDIT_ACTION, COMPLETED_STATUS, Optional.empty(), details)).isEqualTo(expected);
+        assertThat(MessageFormatter.format("Transaction:", "credit", "completed", details)).isEqualTo(expected);
     }
 
     @Test
@@ -80,6 +79,42 @@ class MessageFormatterTest {
         Optional<String> cause = Optional.empty();
 
         String expected = "Bank account: deletion failed";
+
+        assertThat(MessageFormatter.format(context, action, status, cause, Collections.emptyList())).isEqualTo(expected);
+    }
+
+    @Test
+    void should_formatMessageWithEmptyDetailsList() {
+        String context = "Bank account:";
+        String action = "update";
+        String status = "pending";
+        List<String> details = Collections.emptyList();
+
+        String expected = "Bank account: update pending";
+
+        assertThat(MessageFormatter.format(context, action, status, details)).isEqualTo(expected);
+    }
+
+    @Test
+    void should_formatMessageWithEmptyStringsForContextActionStatus() {
+        String context = "";
+        String action = "";
+        String status = "";
+        Optional<String> cause = Optional.of("empty test");
+
+        String expected = "   - empty test";
+
+        assertThat(MessageFormatter.format(context, action, status, cause, Collections.emptyList())).isEqualTo(expected);
+    }
+
+    @Test
+    void should_formatMessageWithSpacesForContextActionStatus() {
+        String context = " ";
+        String action = " ";
+        String status = " ";
+        Optional<String> cause = Optional.of("space test");
+
+        String expected = "      - space test";
 
         assertThat(MessageFormatter.format(context, action, status, cause, Collections.emptyList())).isEqualTo(expected);
     }

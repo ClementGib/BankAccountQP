@@ -7,6 +7,8 @@ import com.cdx.bas.domain.message.MessageFormatter;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.jboss.logging.Logger;
 
 import java.util.List;
@@ -27,11 +29,16 @@ public class CustomerRepository implements CustomerPersistencePort, PanacheRepos
 
     private static final Logger logger = Logger.getLogger(CustomerRepository.class);
 
+
     private final CustomerMapper customerMapper;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Inject
-    public CustomerRepository(CustomerMapper customerMapper) {
+    public CustomerRepository(CustomerMapper customerMapper, EntityManager entityManager) {
         this.customerMapper = customerMapper;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -55,9 +62,9 @@ public class CustomerRepository implements CustomerPersistencePort, PanacheRepos
 
     @Override
     public Customer update(Customer customer) {
-        persist(customerMapper.toEntity(customer));
+        Customer updatedCustomer = customerMapper.toDto(entityManager.merge(customerMapper.toEntity(customer)));
         logger.debug(MessageFormatter.format(CUSTOMER_CONTEXT, UPDATE_ACTION, SUCCESS_STATUS, List.of(CUSTOMER_ID_DETAIL + customer.getId())));
-        return customer;
+        return updatedCustomer;
     }
 
     @Override

@@ -3,7 +3,7 @@ package com.cdx.bas.application.bank.transaction;
 import com.cdx.bas.domain.bank.transaction.*;
 import com.cdx.bas.domain.bank.transaction.type.TransactionProcessorServicePort;
 import com.cdx.bas.domain.bank.transaction.validation.validator.TransactionValidator;
-import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
@@ -19,13 +19,13 @@ import java.util.Set;
 
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.COMPLETED;
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.*;
+import static com.cdx.bas.domain.bank.transaction.type.TransactionType.CREDIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-@QuarkusTestResource(H2DatabaseTestResource.class)
+@WithTestResource(H2DatabaseTestResource.class)
 class TransactionServiceTest {
 
     Clock clock = Mockito.mock(Clock.class);

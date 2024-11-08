@@ -1,6 +1,6 @@
 package com.cdx.bas.client.bank.transaction;
 
-import com.cdx.bas.domain.DomainException;
+import com.cdx.bas.domain.exception.DomainException;
 import com.cdx.bas.domain.bank.transaction.*;
 import com.cdx.bas.domain.message.MessageFormatter;
 import jakarta.enterprise.context.ApplicationScoped;

@@ -1,23 +1,14 @@
-package com.cdx.bas.application.bank.customer;
+package com.cdx.bas.application.bank.customer.maritalstatus;
 
-import com.cdx.bas.application.bank.customer.maritalstatus.MaritalStatusConverter;
-import io.quarkus.test.junit.QuarkusTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.cdx.bas.domain.bank.customer.maritalstatus.MaritalStatus.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
-@QuarkusTest
-public class MaritalStatusConverterTest {
+class MaritalStatusConverterTest {
 
-    MaritalStatusConverter maritalStatusConverter;
+    private final MaritalStatusConverter maritalStatusConverter = new MaritalStatusConverter();
 
-    @BeforeEach
-    public void setUp() {
-        maritalStatusConverter = new MaritalStatusConverter();
-    }
     @Test
     public void convertToDatabaseColumn_shouldConvertToMaritalCode() {
         assertEquals(strSingle, maritalStatusConverter.convertToDatabaseColumn(SINGLE));
@@ -28,12 +19,22 @@ public class MaritalStatusConverterTest {
     }
 
     @Test
+    public void convertToDatabaseColumn_shouldReturnNull_whenMaritalStatusIsNull() {
+        assertNull(maritalStatusConverter.convertToDatabaseColumn(null));
+    }
+
+    @Test
     public void convertToEntityAttribute_shouldConvertToMaritalStatus() {
         assertEquals(SINGLE, maritalStatusConverter.convertToEntityAttribute(strSingle));
         assertEquals(MARRIED, maritalStatusConverter.convertToEntityAttribute(strMarried));
         assertEquals(WIDOWED, maritalStatusConverter.convertToEntityAttribute(strWidowed));
         assertEquals(DIVORCED, maritalStatusConverter.convertToEntityAttribute(strDivorced));
         assertEquals(PACS, maritalStatusConverter.convertToEntityAttribute(strPacs));
+    }
+
+    @Test
+    public void convertToEntityAttribute_shouldReturnNull_whenMaritalCodeIsNull() {
+        assertNull(maritalStatusConverter.convertToEntityAttribute(null));
     }
 
     @Test

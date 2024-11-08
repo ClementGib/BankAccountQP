@@ -30,12 +30,18 @@ import static com.cdx.bas.domain.message.CommonMessages.*;
 public class TransactionRepository implements TransactionPersistencePort, PanacheRepositoryBase<TransactionEntity, Long> {
 
     private static final Logger logger = Logger.getLogger(TransactionRepository.class);
+    public static final String STATUS = "status";
+
+    TransactionMapper transactionMapper;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     @Inject
-    TransactionMapper transactionMapper;
+    public TransactionRepository(TransactionMapper transactionMapper, EntityManager entityManager) {
+        this.transactionMapper = transactionMapper;
+        this.entityManager = entityManager;
+    }
 
     @Override
     public Optional<Transaction> findById(long id) {
@@ -44,7 +50,7 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
 
     @Override
     public Set<Transaction> getAll() {
-        return findAll(Sort.by("status")).stream()
+        return findAll(Sort.by(STATUS)).stream()
                 .map(transactionEntity -> transactionMapper.toDto(transactionEntity))
                 .collect(Collectors.toSet());
     }
@@ -53,7 +59,7 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
     @Override
     @Transactional
     public Set<Transaction> findAllByStatus(TransactionStatus transactionStatus) {
-        return findAll(Sort.by("status")).stream()
+        return findAll(Sort.by(STATUS)).stream()
                 .filter(transaction -> transaction.getStatus().equals(transactionStatus))
                 .map(transaction -> transactionMapper.toDto(transaction))
                 .collect(Collectors.toSet());
@@ -62,7 +68,7 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
     @Override
     public Queue<Transaction> findUnprocessedTransactions() {
         return find("#TransactionEntity.findUnprocessed",
-                Parameters.with("status", TransactionStatus.UNPROCESSED).map())
+                Parameters.with(STATUS, TransactionStatus.UNPROCESSED).map())
                 .list()
                 .stream().map(transactionMapper::toDto)
                 .collect(Collectors.toCollection(PriorityQueue::new));
@@ -77,9 +83,9 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
 
     @Override
     public Transaction update(Transaction transaction) {
-        entityManager.merge(transactionMapper.toEntity(transaction));
+        Transaction updatedTransaction = transactionMapper.toDto(entityManager.merge(transactionMapper.toEntity(transaction)));
         logger.debug(MessageFormatter.format(TRANSACTION_CONTEXT, UPDATE_ACTION, SUCCESS_STATUS, List.of(TRANSACTION_ID_DETAIL + transaction.getId())));
-        return transaction;
+        return updatedTransaction;
     }
 
     @Override

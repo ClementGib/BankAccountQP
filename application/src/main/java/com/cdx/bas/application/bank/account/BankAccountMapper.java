@@ -46,21 +46,21 @@ public class BankAccountMapper implements DtoEntityMapper<BankAccount, BankAccou
                 .map(CustomerEntity::getId)
                 .collect(Collectors.toSet()));
 
-        dto.setIssuedTransactions(entity.getIssuedTransactions().stream()
+        dto.setIssuedTransactions(entity.getIssuedTransactions()
+                .stream()
                 .map(transactionMapper::toDto)
                 .collect(Collectors.toSet()));
-
         return dto;
     }
 
     @Override
     public BankAccountEntity toEntity(BankAccount dto) {
 
-        if (dto == null || dto.getId() == null) {
+        if (dto == null) {
             return null;
         }
 
-        BankAccountEntity entity = bankAccountRepository.findByIdOptional(dto.getId()).orElse(new BankAccountEntity());
+        BankAccountEntity entity = new BankAccountEntity();
         entity.setId(dto.getId());
         entity.setType(dto.getType());
 
@@ -80,7 +80,6 @@ public class BankAccountMapper implements DtoEntityMapper<BankAccount, BankAccou
             TransactionEntity newIssuedTransactionEntity = transactionMapper.toEntity(issuedTransactionDto);
             newIssuedTransactions.add(newIssuedTransactionEntity);
         }
-
         entity.setIssuedTransactions(newIssuedTransactions);
         return entity;
     }

@@ -26,10 +26,10 @@ public class BankAccountEntity extends PanacheEntityBase {
     @Column(name = "balance", nullable = false)
     private BigDecimal balance;
 
-    @ManyToMany(mappedBy = "accounts", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @ManyToMany(mappedBy = "accounts", fetch = FetchType.LAZY)
     private Set<CustomerEntity> customers = new HashSet<>();
 
-    @OneToMany(mappedBy = "emitterBankAccountEntity", cascade = CascadeType.MERGE)
+    @OneToMany(mappedBy = "emitterBankAccountEntity", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @OrderBy("date")
     private Set<TransactionEntity> issuedTransactions = new HashSet<>();
 
