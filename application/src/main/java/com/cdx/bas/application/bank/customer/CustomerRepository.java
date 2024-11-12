@@ -48,6 +48,19 @@ public class CustomerRepository implements CustomerPersistencePort, PanacheRepos
                 .collect(Collectors.toSet());
     }
 
+
+    @Override
+    public Set<Customer> findAllById(Set<Long> customersId) {
+        List<CustomerEntity> customerEntities = entityManager
+                .createQuery("SELECT c FROM CustomerEntity c WHERE c.id IN :ids", CustomerEntity.class)
+                .setParameter("ids", customersId)
+                .getResultList();
+
+        return customerEntities.stream()
+                .map(customerMapper::toDto)
+                .collect(Collectors.toSet());
+    }
+
     @Override
     public Optional<Customer> findById(long id) {
         return findByIdOptional(id).map(customerMapper::toDto);

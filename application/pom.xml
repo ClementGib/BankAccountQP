@@ -120,7 +120,11 @@
                     <target>21</target>
                     <release>21</release>
                     <annotationProcessorPaths>
-                        <!-- Your existing annotation processor(s)... -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
                         <path>
                             <groupId>io.quarkus</groupId>
                             <artifactId>quarkus-panache-common</artifactId>

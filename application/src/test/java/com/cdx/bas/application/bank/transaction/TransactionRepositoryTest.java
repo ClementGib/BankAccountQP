@@ -1,6 +1,8 @@
 package com.cdx.bas.application.bank.transaction;
 
 import com.cdx.bas.domain.bank.transaction.Transaction;
+import com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType;
+import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -17,10 +19,9 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 
-import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.COMPLETED;
+import static com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType.CREDIT;
+import static com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType.DEBIT;
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.CREDIT;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.DEBIT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -34,22 +35,28 @@ class TransactionRepositoryTest {
 
     @Test
     @Order(1)
-    public void findById_shouldFindTransaction_whenIdIsFound() {
+    void findById_shouldFindTransaction_whenIdIsFound() {
         Instant expectedInstant = OffsetDateTime.of(
                 2024, 6, 6, 12, 0, 0, 0,
                 ZoneOffset.ofHours(1)).toInstant();
-        Optional<Transaction> expectedTransaction = Optional.of(Transaction.builder()
-                .id(1L)
-                .emitterAccountId(1L)
-                .receiverAccountId(2L)
-                .amount(new BigDecimal("1600.00"))
-                .currency("EUR")
-                .type(CREDIT)
-                .status(COMPLETED)
-                .date(expectedInstant)
-                .label("transaction 1")
-                .metadata(Map.of("emitter_amount_before", "2000", "receiver_amount_before", "0", "emitter_amount_after", "400", "receiver_amount_after", "1600"))
-                .build());
+        Transaction transaction = new Transaction();
+        transaction.setId(1L);
+        transaction.setEmitterAccountId(1L);
+        transaction.setReceiverAccountId(2L);
+        transaction.setAmount(new BigDecimal("1600.00"));
+        transaction.setCurrency("EUR");
+        transaction.setType(TransactionType.CREDIT);
+        transaction.setStatus(TransactionStatus.COMPLETED);
+        transaction.setDate(expectedInstant);
+        transaction.setLabel("transaction 1");
+        transaction.setMetadata(Map.of(
+                "emitter_amount_before", "2000",
+                "receiver_amount_before", "0",
+                "emitter_amount_after", "400",
+                "receiver_amount_after", "1600"
+        ));
+
+        Optional<Transaction> expectedTransaction = Optional.of(transaction);
         Optional<Transaction> actualTransaction = transactionRepository.findById(1);
 
         // Assert
@@ -60,7 +67,7 @@ class TransactionRepositoryTest {
 
     @Test
     @Order(2)
-    public void findUnprocessedTransactions_shouldFindEveryUnprocessedTransactions() {
+    void findUnprocessedTransactions_shouldFindEveryUnprocessedTransactions() {
         Queue<Transaction> actualUnprocessedTransactions = transactionRepository.findUnprocessedTransactions();
 
         Queue<Transaction> expectedUnprocessedTransactions = new PriorityQueue<>();
@@ -79,35 +86,31 @@ class TransactionRepositoryTest {
     @Test
     @Order(3)
     @Transactional
-    public void create_shouldPersistTransaction() {
+    void create_shouldPersistTransaction() {
+        long id = 20L;
         Transaction transactionToCreate = new Transaction(null, 8L, 1L, new BigDecimal("99999.00"), "EUR", DEBIT, UNPROCESSED, Instant.parse("2024-12-06T18:00:10+00:00"), "transaction 8", new HashMap<>());
         transactionRepository.create(transactionToCreate);
 
-        transactionRepository.getEntityManager().flush();
-        Optional<Transaction> actualOptionalTransaction = transactionRepository.findById(10L);
+        Optional<Transaction> actualOptionalTransaction = transactionRepository.findById(id);
 
-
-        Transaction expectedTransaction = new Transaction(10L, 8L, 1L, new BigDecimal("99999.00"), "EUR", DEBIT, UNPROCESSED, Instant.parse("2024-12-06T18:00:10+00:00"), "transaction 8", new HashMap<>());
-        Optional<Transaction> optionalTransaction = Optional.of(expectedTransaction);
-        assertThat(transactionToCreate)
+        Transaction expectedTransaction = new Transaction(id, 8L, 1L, new BigDecimal("99999.00"), "EUR", DEBIT, UNPROCESSED, Instant.parse("2024-12-06T18:00:10+00:00"), "transaction 8", new HashMap<>());
+        assertThat(actualOptionalTransaction).isNotEmpty();
+        assertThat(actualOptionalTransaction.get())
                 .usingRecursiveComparison()
-                .isEqualTo(transactionToCreate);
-        assertThat(actualOptionalTransaction)
-                .usingRecursiveComparison()
-                .isEqualTo(optionalTransaction);
+                .isEqualTo(expectedTransaction);
     }
 
     @Test
     @Order(4)
     @Transactional
-    public void update_shouldMergeTransaction() {
+    void update_shouldMergeTransaction() {
         Transaction expectedTransaction = new Transaction(2L, 6L, 3L,
                 new BigDecimal("9200.00"), "EUR", CREDIT, UNPROCESSED,
                 Instant.parse("2024-11-10T15:00:00+02:00"),
                 "transaction to process", Map.of("emitter_amount_before", "9200", "receiver_amount_before", "10000", "emitter_amount_after", "0", "receiver_amount_after", "19200"));
         Optional<Transaction> optionalExpectedTransaction = Optional.of(expectedTransaction);
 
-        Transaction updatedTransaction =  transactionRepository.update(expectedTransaction);
+        Transaction updatedTransaction = transactionRepository.update(expectedTransaction);
         Optional<Transaction> actualOptionalTransaction = transactionRepository.findById(2);
 
         assertThat(updatedTransaction)
@@ -121,14 +124,17 @@ class TransactionRepositoryTest {
     @Test
     @Order(5)
     @Transactional
-    public void deleteById_shouldDeleteTransaction_whenIdIsFound() {
-        long transactionIdToDelete = 10L;
-        Transaction transactionToDelete = new Transaction(10L, 8L, 1L, new BigDecimal("99999.00"), "EUR", DEBIT, UNPROCESSED, Instant.parse("2024-12-06T18:00:10+00:00"), "transaction 8", new HashMap<>());
+    void deleteById_shouldDeleteTransaction_whenIdIsFound() {
+        // Arrange
+        long id = 20L;
+        Transaction transactionToDelete = new Transaction(id, 8L, 1L, new BigDecimal("99999.00"), "EUR", DEBIT, UNPROCESSED, Instant.parse("2024-12-06T18:00:10+00:00"), "transaction 8", new HashMap<>());
         Optional<Transaction> optionalTransaction = Optional.of(transactionToDelete);
 
+        // Act
+        Optional<Transaction> deletedTransaction = transactionRepository.deleteById(id);
 
-        Optional<Transaction> deletedTransaction = transactionRepository.deleteById(transactionIdToDelete);
-        Optional<Transaction> deletedOptionalTransaction = transactionRepository.findById(10L);
+        // Assert
+        Optional<Transaction> deletedOptionalTransaction = transactionRepository.findById(id);
 
         assertThat(deletedOptionalTransaction).isEmpty();
         assertThat(deletedTransaction)

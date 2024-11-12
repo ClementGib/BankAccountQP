@@ -1,11 +1,10 @@
 package com.cdx.bas.domain.message;
 
-import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Utility class for formatting standardized messages used in various operations, following the structure:
@@ -13,8 +12,11 @@ import org.apache.commons.lang3.StringUtils;
  * Each optional detail appears on a new line.
  * This class enables consistent and clear formatting for logs and error messages across the application.
  */
-@UtilityClass
 public class MessageFormatter {
+
+    private MessageFormatter() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
 
     /**
      * A constant for a single space character used to separate message components.
@@ -33,7 +35,7 @@ public class MessageFormatter {
      * @param details       an optional list of extra details, each appearing on a new line
      * @return a formatted message string based on the provided inputs
      */
-    public String format(String context, String action, String status, Optional<String> optionalCause, List<String> details) {
+    public static String format(String context, String action, String status, Optional<String> optionalCause, List<String> details) {
         StringBuilder message = new StringBuilder();
         message.append(context)
                 .append(StringUtils.SPACE)
@@ -61,7 +63,7 @@ public class MessageFormatter {
      * @param optionalCause an optional explanation for issues (e.g., "insufficient funds")
      * @return a formatted message string with the cause if specified
      */
-    public String format(String context, String action, String status, Optional<String> optionalCause) {
+    public static String format(String context, String action, String status, Optional<String> optionalCause) {
         return format(context, action, status, optionalCause, Collections.emptyList());
     }
 
@@ -74,7 +76,7 @@ public class MessageFormatter {
      * @param details an optional list of details, each appearing on a new line
      * @return a formatted message string with context, action, status, and details if provided
      */
-    public String format(String context, String action, String status, List<String> details) {
+    public static String format(String context, String action, String status, List<String> details) {
         return format(context, action, status, Optional.empty(), details);
     }
 
@@ -86,7 +88,7 @@ public class MessageFormatter {
      * @param status  the outcome of the action (e.g., "success")
      * @return a formatted message string with just context, action, and status
      */
-    public String format(String context, String action, String status) {
+    public static String format(String context, String action, String status) {
         return format(context, action, status, Optional.empty(), Collections.emptyList());
     }
 }

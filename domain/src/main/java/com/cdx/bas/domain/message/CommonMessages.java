@@ -1,9 +1,13 @@
 package com.cdx.bas.domain.message;
 
-import lombok.experimental.UtilityClass;
+import com.cdx.bas.domain.testing.Generated;
 
-@UtilityClass
+@Generated
 public class CommonMessages {
+    private CommonMessages() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
+
     // Context
     public static final String SCHEDULER_CONTEXT = "Scheduler:";
     public static final String BANK_ACCOUNT_CONTEXT = "Bank account:";
@@ -28,6 +32,7 @@ public class CommonMessages {
     public static final String DIGITAL_TRANSACTION_ACTION = "digital transaction";
     public static final String DEPOSIT_ACTION = "deposit";
     public static final String WITHDRAW_ACTION = "withdraw";
+    public static final String CASH_TRANSACTION_ACTION = "cash transaction";
     public static final String OUTSTANDING_STATUS_ACTION = "set status to outstanding";
     public static final String CHANGE_STATUS_ACTION = "set status";
     public static final String JSON_PARSE_METADATA = "parse JSON metadata to Map";
@@ -47,7 +52,9 @@ public class CommonMessages {
 
     // Cause
     public static final String NOT_FOUND_CAUSE = "not found";
+    public static final String MISSING_ID_CAUSE = "missing id";
     public static final String TRANSACTION_ERROR_CAUSE = "transaction error";
+    public static final String DOMAIN_ERROR = "domain error";
     public static final String BANK_ACCOUNT_ERROR_CAUSE = "bank account error";
     public static final String SHOULD_HAVE_POSITIVE_VALUE_CAUSE = "should have positive value";
     public static final String UNEXPECTED_ERROR_CAUSE = "unexpected error";

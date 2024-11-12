@@ -11,6 +11,13 @@ public interface CustomerPersistencePort {
      */
     public Set<Customer> getAll();
 
+    /**
+     * find every Customers from id collection
+     *
+     * @param customersId
+     * @return all Customer
+     */
+    public Set<Customer> findAllById(Set<Long> customersId);
     
     /**
      * find Customer from its id

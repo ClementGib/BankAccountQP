@@ -1,13 +1,17 @@
 package com.cdx.bas.application.bank.account;
 
+import com.cdx.bas.application.bank.customer.CustomerRepository;
+import com.cdx.bas.application.bank.transaction.TransactionRepository;
 import com.cdx.bas.domain.bank.account.BankAccount;
 import com.cdx.bas.domain.bank.account.BankAccountPersistencePort;
 import com.cdx.bas.domain.bank.account.checking.CheckingBankAccount;
 import com.cdx.bas.domain.bank.account.mma.MMABankAccount;
 import com.cdx.bas.domain.bank.account.saving.SavingBankAccount;
 import com.cdx.bas.domain.bank.account.type.AccountType;
+import com.cdx.bas.domain.bank.customer.Customer;
 import com.cdx.bas.domain.bank.transaction.Transaction;
-import com.cdx.bas.domain.bank.transaction.TransactionPersistencePort;
+import com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType;
+import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import com.cdx.bas.domain.money.Money;
 import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
@@ -26,8 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.DEPOSIT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -36,10 +38,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BankAccountRepositoryTest {
 
     @Inject
-    BankAccountPersistencePort bankAccountRepository;
+    BankAccountRepository bankAccountRepository;
 
     @Inject
-    TransactionPersistencePort transactionRepository;
+    CustomerRepository customerRepository;
+
+    @Inject
+    TransactionRepository transactionRepository;
 
     @Test
     @Transactional
@@ -64,10 +69,9 @@ class BankAccountRepositoryTest {
         assertThat(allBankAccounts)
                 .hasSize(expectedAccounts.size())
                 .usingRecursiveComparison()
-                .ignoringFields("customersId", "issuedTransactions")
+                .ignoringFields("customersId", "issuedTransactions", "incomingTransactions")
                 .isEqualTo(expectedAccounts);
     }
-
 
     @Test
     @Transactional
@@ -83,7 +87,7 @@ class BankAccountRepositoryTest {
         assertThat(optionalBankAccount).isPresent();
         assertThat(optionalBankAccount.get())
                 .usingRecursiveComparison()
-                .ignoringFields("customersId", "issuedTransactions")
+                .ignoringFields("customersId", "issuedTransactions", "incomingTransactions")
                 .isEqualTo(bankAccount);
     }
 
@@ -103,7 +107,7 @@ class BankAccountRepositoryTest {
     @Order(2)
     void shouldCreateBankAccountSuccessfully() {
         // Arrange
-        long id = 10L;
+        long id = 20L;
         BankAccount bankAccount = new CheckingBankAccount();
         bankAccount.setType(AccountType.CHECKING);
         bankAccount.setBalance(new Money(new BigDecimal("0")));
@@ -126,32 +130,31 @@ class BankAccountRepositoryTest {
     @Order(3)
     void shouldUpdateBankAccountSuccessfully() {
         // Arrange
-        long id = 7L;
+        long id = 8L;
         Instant timestamp = Instant.now();
         BankAccount bankAccount = new CheckingBankAccount();
         bankAccount.setId(id);
-        bankAccount.setType(AccountType.CHECKING);
-        bankAccount.setBalance(new Money(new BigDecimal("0.00")));
+        bankAccount.setType(AccountType.SAVING);
+        bankAccount.setBalance(new Money(new BigDecimal("200000.00")));
         bankAccount.setCustomersId(Set.of(6L));
-        Transaction transaction = Transaction.builder()
-                .emitterAccountId(id)
-                .amount(new BigDecimal("1000.00"))
-                .currency("EUR")
-                .type(DEPOSIT)
-                .status(UNPROCESSED)
-                .date(timestamp)
-                .label("first deposit")
-                .metadata(Map.of("bill", "500,500"))
-                .build();
+        Transaction transaction = new Transaction();
+        transaction.setEmitterAccountId(id);
+        transaction.setAmount(new BigDecimal("5000.00"));
+        transaction.setCurrency("EUR");
+        transaction.setType(TransactionType.DEPOSIT);
+        transaction.setStatus(TransactionStatus.UNPROCESSED);
+        transaction.setDate(timestamp);
+        transaction.setLabel("transaction 8");
+        transaction.setMetadata(Map.of("bill", "2500,2500"));
         bankAccount.getIssuedTransactions().add(transaction);
 
+
         // Act
-        BankAccount updateBankAccount = bankAccountRepository.update(bankAccount);
+        BankAccount updated = bankAccountRepository.update(bankAccount);
 
         // Assert
-        Optional<BankAccount> updatedAccount = bankAccountRepository.findById(updateBankAccount.getId());
-        bankAccount.setId(id);
-        transaction.setId(updateBankAccount.getIssuedTransactions().iterator().next().getId());
+        Optional<BankAccount> updatedAccount = ((BankAccountPersistencePort) bankAccountRepository).findById(updated.getId());
+        transaction.setId(updated.getIssuedTransactions().iterator().next().getId());
         assertThat(updatedAccount).isPresent();
         assertThat(updatedAccount.get())
                 .usingRecursiveComparison()
@@ -163,11 +166,15 @@ class BankAccountRepositoryTest {
     @Order(4)
     void shouldDeleteBankAccountSuccessfully_whenAccountExists() {
         // Act
-        long id = 10L;
+        long id = 3L;
+
+        // Arrange
         Optional<BankAccount> deletedAccount = bankAccountRepository.deleteById(id);
 
         // Assert
         assertThat(deletedAccount).isNotEmpty();
+        Optional<Customer> customer = customerRepository.findById(4L);
+        assertThat(customer).isPresent();
         assertThat(bankAccountRepository.findById(id)).isEmpty();
     }
 

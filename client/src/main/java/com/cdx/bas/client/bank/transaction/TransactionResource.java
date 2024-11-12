@@ -1,5 +1,7 @@
 package com.cdx.bas.client.bank.transaction;
 
+import com.cdx.bas.domain.bank.transaction.category.NewCashTransaction;
+import com.cdx.bas.domain.bank.transaction.category.NewDigitalTransaction;
 import com.cdx.bas.domain.exception.DomainException;
 import com.cdx.bas.domain.bank.transaction.*;
 import com.cdx.bas.domain.message.MessageFormatter;
@@ -57,7 +59,11 @@ public class TransactionResource implements TransactionControllerPort {
     @Produces(MediaType.APPLICATION_JSON)
     @Override
     public Transaction findById(@PathParam("id") long id) {
-        return transactionServicePort.findTransaction(id);
+        try {
+            return transactionServicePort.findTransaction(id);
+        } catch (TransactionException exception) {
+            throw new WebApplicationException(exception.getMessage(), Response.Status.NOT_FOUND);
+        }
     }
 
     @POST
@@ -134,7 +140,7 @@ public class TransactionResource implements TransactionControllerPort {
             return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
         } catch (Exception exception) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(MessageFormatter.format(TRANSACTION_CONTEXT, DIGITAL_TRANSACTION_ACTION, UNEXPECTED_STATUS))
+                    .entity(MessageFormatter.format(TRANSACTION_CONTEXT, CASH_TRANSACTION_ACTION, UNEXPECTED_STATUS))
                     .build();
         }
     }

@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.cdx.bas.domain.message.CommonMessages.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MessageFormatterTest {

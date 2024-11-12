@@ -1,6 +1,7 @@
 package com.cdx.bas.domain.bank.transaction;
 
-import com.cdx.bas.domain.bank.transaction.validation.validator.TransactionValidator;
+import com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType;
+import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -12,9 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.ERROR;
-import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -25,30 +23,28 @@ class TransactionValidatorTest {
     TransactionValidator transactionValidator;
 
     @Test
-    public void shouldDoNothing_whenNewDigitalTransactionIsValid() {
+    void shouldDoNothing_whenNewDigitalTransactionIsValid() {
         // Arrange
-        Transaction creditTransaction = Transaction.builder()
-                .id(null)
-                .emitterAccountId(1L)
-                .receiverAccountId(2L)
-                .amount(new BigDecimal("1"))
-                .currency("EUR")
-                .type(CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now())
-                .label("new transaction")
-                .metadata(new HashMap<>())
-                .build();
+        Transaction creditTransaction = new Transaction();
+        creditTransaction.setId(null);
+        creditTransaction.setEmitterAccountId(1L);
+        creditTransaction.setReceiverAccountId(2L);
+        creditTransaction.setAmount(new BigDecimal("1"));
+        creditTransaction.setCurrency("EUR");
+        creditTransaction.setType(TransactionType.CREDIT);
+        creditTransaction.setStatus(TransactionStatus.UNPROCESSED);
+        creditTransaction.setDate(Instant.now());
+        creditTransaction.setLabel("new transaction");
+        creditTransaction.setMetadata(new HashMap<>());
 
         // Act
         transactionValidator.validateNewDigitalTransaction(creditTransaction);
     }
 
     @Test
-    public void shouldThrowTransactionExceptionWithMissingViolation_whenNewDigitalTransactionIsEmpty() {
+    void shouldThrowTransactionExceptionWithMissingViolation_whenNewDigitalTransactionIsEmpty() {
         // Arrange
-        Transaction creditTransaction = Transaction.builder()
-                .build();
+        Transaction creditTransaction = new Transaction();
         try {
             // Act
             transactionValidator.validateNewDigitalTransaction(creditTransaction);
@@ -56,7 +52,6 @@ class TransactionValidatorTest {
         } catch (TransactionException transactionException) {
             // Assert
             List<String> expectedErrors = List.of("Date must not be null.",
-                    "Metadata must not be null.",
                     "Amount must not be null.",
                     "Emitter account id must not be null.",
                     "Currency must not be null.",
@@ -66,23 +61,23 @@ class TransactionValidatorTest {
                     "Status must not be null.");
             List<String> actualErrors = Arrays.stream(transactionException.getMessage().split("\\r?\\n")).toList();
             assertThat(actualErrors)
-                    .hasSize(9)
+                    .hasSize(8)
                     .containsExactlyInAnyOrderElementsOf(expectedErrors);
         }
     }
 
     @Test
-    public void shouldThrowTransactionExceptionWithWrongValue_whenNewDigitalTransactionHasWrongValue() {
+    void shouldThrowTransactionExceptionWithWrongValue_whenNewDigitalTransactionHasWrongValue() {
         // Arrange
-        Transaction creditTransaction = Transaction.builder()
-                .id(1L)
-                .emitterAccountId(-1L)
-                .receiverAccountId(-1L)
-                .amount(new BigDecimal("0"))
-                .currency("NFC")
-                .type(DEPOSIT)
-                .status(ERROR)
-                .build();
+        Transaction creditTransaction = new Transaction();
+        creditTransaction.setId(1L);
+        creditTransaction.setEmitterAccountId(-1L);
+        creditTransaction.setReceiverAccountId(-1L);
+        creditTransaction.setAmount(new BigDecimal("0"));
+        creditTransaction.setCurrency("NFC");
+        creditTransaction.setType(TransactionType.DEPOSIT);
+        creditTransaction.setStatus(TransactionStatus.ERROR);
+
         try {
             // Act
             transactionValidator.validateNewDigitalTransaction(creditTransaction);
@@ -90,7 +85,6 @@ class TransactionValidatorTest {
         } catch (TransactionException transactionException) {
             // Assert
             List<String> expectedErrors = List.of("Date must not be null.",
-                    "Metadata must not be null.",
                     "Amount must be positive and greater than 0.",
                     "Emitter account id  must be positive.",
                     "Currency should be in the exchange rate map.",
@@ -101,35 +95,34 @@ class TransactionValidatorTest {
                     "Unexpected transaction status ERROR, expected status: UNPROCESSED.");
             List<String> actualErrors = Arrays.stream(transactionException.getMessage().split("\\r?\\n")).toList();
             assertThat(actualErrors)
-                    .hasSize(10)
+                    .hasSize(9)
                     .containsExactlyInAnyOrderElementsOf(expectedErrors);
         }
     }
 
     @Test
-    public void shouldDoNothing_whenExistingDigitalTransactionIsValid() {
+    void shouldDoNothing_whenExistingDigitalTransactionIsValid() {
         // Arrange
-        Transaction creditTransaction = Transaction.builder()
-                .id(100L)
-                .emitterAccountId(1L)
-                .receiverAccountId(2L)
-                .amount(new BigDecimal("1"))
-                .currency("EUR")
-                .type(CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now())
-                .label("new transaction")
-                .metadata(new HashMap<>())
-                .build();
+        Transaction creditTransaction = new Transaction();
+        creditTransaction.setId(100L);
+        creditTransaction.setEmitterAccountId(1L);
+        creditTransaction.setReceiverAccountId(2L);
+        creditTransaction.setAmount(new BigDecimal("1"));
+        creditTransaction.setCurrency("EUR");
+        creditTransaction.setType(TransactionType.CREDIT);
+        creditTransaction.setStatus(TransactionStatus.UNPROCESSED);
+        creditTransaction.setDate(Instant.now());
+        creditTransaction.setLabel("new transaction");
+        creditTransaction.setMetadata(new HashMap<>());
+
         // Act
         transactionValidator.validateExistingDigitalTransaction(creditTransaction);
     }
 
     @Test
-    public void shouldThrowTransactionException_whenExistingDigitalTransactionIsEmpty() {
+    void shouldThrowTransactionException_whenExistingDigitalTransactionIsEmpty() {
         // Arrange
-        Transaction creditTransaction = Transaction.builder()
-                .build();
+        Transaction creditTransaction = new Transaction();
         try {
             // Act
             transactionValidator.validateExistingDigitalTransaction(creditTransaction);
@@ -137,7 +130,6 @@ class TransactionValidatorTest {
         } catch (TransactionException transactionException) {
             // Assert
             List<String> expectedErrors = List.of("Date must not be null.",
-                    "Metadata must not be null.",
                     "Amount must not be null.",
                     "Emitter account id must not be null.",
                     "Currency must not be null.",
@@ -148,21 +140,21 @@ class TransactionValidatorTest {
                     "Receiver account id must not be null.");
             List<String> actualErrors = Arrays.stream(transactionException.getMessage().split("\\r?\\n")).toList();
             assertThat(actualErrors)
-                    .hasSize(10)
+                    .hasSize(9)
                     .containsExactlyInAnyOrderElementsOf(expectedErrors);
         }
     }
     @Test
-    public void shouldThrowTransactionExceptionWithWrongValue_whenExistingDigitalTransactionHasWrongValue() {
+    void shouldThrowTransactionExceptionWithWrongValue_whenExistingDigitalTransactionHasWrongValue() {
         // Arrange
-        Transaction creditTransaction = Transaction.builder()
-                .id(-1L)
-                .emitterAccountId(-1L)
-                .receiverAccountId(-1L)
-                .amount(new BigDecimal("0"))
-                .currency("NFC")
-                .type(DEPOSIT)
-                .build();
+        Transaction creditTransaction = new Transaction();
+        creditTransaction.setId(-1L);
+        creditTransaction.setEmitterAccountId(-1L);
+        creditTransaction.setReceiverAccountId(-1L);
+        creditTransaction.setAmount(new BigDecimal("0"));
+        creditTransaction.setCurrency("NFC");
+        creditTransaction.setType(TransactionType.DEPOSIT);
+
         try {
             // Act
             transactionValidator.validateExistingDigitalTransaction(creditTransaction);
@@ -170,7 +162,6 @@ class TransactionValidatorTest {
         } catch (TransactionException transactionException) {
             // Assert
             List<String> expectedErrors = List.of("Date must not be null.",
-                    "Metadata must not be null.",
                     "Amount must be positive and greater than 0.",
                     "Emitter account id  must be positive.",
                     "Currency should be in the exchange rate map.",
@@ -181,35 +172,34 @@ class TransactionValidatorTest {
                     "Receiver account id  must be positive.");
             List<String> actualErrors = Arrays.stream(transactionException.getMessage().split("\\r?\\n")).toList();
             assertThat(actualErrors)
-                    .hasSize(10)
+                    .hasSize(9)
                     .containsExactlyInAnyOrderElementsOf(expectedErrors);
         }
     }
 
     @Test
-    public void shouldDoNothing_whenCashTransactionIsValid() {
+    void shouldDoNothing_whenCashTransactionIsValid() {
         // Arrange
         Map<String, String> metadata = new HashMap<>();
         metadata.put("bill", "5,5");
-        Transaction creditTransaction = Transaction.builder()
-                .emitterAccountId(1L)
-                .amount(new BigDecimal("10"))
-                .currency("EUR")
-                .type(WITHDRAW)
-                .status(UNPROCESSED)
-                .date(Instant.now())
-                .label("new transaction")
-                .metadata(metadata)
-                .build();
+        Transaction creditTransaction = new Transaction();
+        creditTransaction.setEmitterAccountId(1L);
+        creditTransaction.setAmount(new BigDecimal("10"));
+        creditTransaction.setCurrency("EUR");
+        creditTransaction.setType(TransactionType.WITHDRAW);
+        creditTransaction.setStatus(TransactionStatus.UNPROCESSED);
+        creditTransaction.setDate(Instant.now());
+        creditTransaction.setLabel("new transaction");
+        creditTransaction.setMetadata(metadata);
+
         // Act
         transactionValidator.validateCashTransaction(creditTransaction);
     }
 
     @Test
-    public void shouldThrowTransactionException_whenNewCashTransactionIsEmpty() {
+    void shouldThrowTransactionException_whenNewCashTransactionIsEmpty() {
         // Arrange
-        Transaction creditTransaction = Transaction.builder()
-                .build();
+        Transaction creditTransaction = new Transaction();
         try {
             // Act
             transactionValidator.validateCashTransaction(creditTransaction);
@@ -217,8 +207,8 @@ class TransactionValidatorTest {
         } catch (TransactionException transactionException) {
             // Assert
             List<String> expectedErrors = List.of("Date must not be null.",
-                    "Metadata must not be null.",
                     "Amount must not be null.",
+                    "Bill must be define for cash movements.",
                     "Emitter account id must not be null.",
                     "Currency must not be null.",
                     "Label must not be null.",
@@ -232,17 +222,17 @@ class TransactionValidatorTest {
     }
 
     @Test
-    public void shouldThrowTransactionException_whenNewCashTransactionHasWrongValue() {
+    void shouldThrowTransactionException_whenNewCashTransactionHasWrongValue() {
         // Arrange
-        Transaction creditTransaction = Transaction.builder()
-                .id(-1L)
-                .emitterAccountId(-1L)
-                .receiverAccountId(-1L)
-                .amount(new BigDecimal("0"))
-                .currency("NFC")
-                .type(DEBIT)
-                .status(ERROR)
-                .build();
+        Transaction creditTransaction = new Transaction();
+        creditTransaction.setId(-1L);
+        creditTransaction.setEmitterAccountId(-1L);
+        creditTransaction.setReceiverAccountId(-1L);
+        creditTransaction.setAmount(new BigDecimal("0"));
+        creditTransaction.setCurrency("NFC");
+        creditTransaction.setType(TransactionType.DEBIT);
+        creditTransaction.setStatus(TransactionStatus.ERROR);
+
         try {
             // Act
             transactionValidator.validateCashTransaction(creditTransaction);
@@ -250,7 +240,7 @@ class TransactionValidatorTest {
         } catch (TransactionException transactionException) {
             // Assert
             List<String> expectedErrors = List.of("Date must not be null.",
-                    "Metadata must not be null.",
+                    "Bill must be define for cash movements.",
                     "Amount must be greater than 10 for cash movement.",
                     "Emitter account id  must be positive.",
                     "Currency should be in the exchange rate map.",

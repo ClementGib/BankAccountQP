@@ -1,7 +1,5 @@
 package com.cdx.bas.domain.money;
 
-import com.cdx.bas.domain.money.Amount;
-import com.cdx.bas.domain.money.Money;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolation;
@@ -14,13 +12,13 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
-public class AmountValidatorTest {
+class AmountValidatorTest {
     
     @Inject
     Validator validator;
     
     @Test
-    public void isValid_shouldGeneratesConstraintValidationWithDefaultValue_whenBalanceNotValidAndMessageIsNotSpecified() {
+    void isValid_shouldGeneratesConstraintValidationWithDefaultValue_whenBalanceNotValidAndMessageIsNotSpecified() {
         Money money = new Money(new BigDecimal("10001"));
         DefaultValidatorTester validatorTester = new DefaultValidatorTester();
         validatorTester.balance = money;
@@ -32,7 +30,7 @@ public class AmountValidatorTest {
     }
     
     @Test
-    public void isValid_shouldGeneratesConstraintsValidation_whenAmountOfMoneyIsLowerThanMinValue() {
+    void isValid_shouldGeneratesConstraintsValidation_whenAmountOfMoneyIsLowerThanMinValue() {
         Money money = new Money(new BigDecimal("-100"));
         SpecifiedValidatorTester validatorTester = new SpecifiedValidatorTester();
         validatorTester.balance = money;
@@ -44,7 +42,7 @@ public class AmountValidatorTest {
     }
     
     @Test
-    public void isValid_shouldGeneratesConstraintValidation_whenAmountOfMoneyIsGreaterThanMaxValue() {
+    void isValid_shouldGeneratesConstraintValidation_whenAmountOfMoneyIsGreaterThanMaxValue() {
         Money money = new Money(new BigDecimal("100001"));
         SpecifiedValidatorTester validatorTester = new SpecifiedValidatorTester();
         validatorTester.balance = money;
@@ -56,7 +54,7 @@ public class AmountValidatorTest {
     }
     
     @Test
-    public void isValid_shouldGenerateConstraintValidation_whenAmountOfMoneyIsBetweenMinAndMaxValues() {
+    void isValid_shouldGenerateConstraintValidation_whenAmountOfMoneyIsBetweenMinAndMaxValues() {
         Money money = new Money(new BigDecimal("100"));
         SpecifiedValidatorTester validatorTester = new SpecifiedValidatorTester();
         validatorTester.balance = money;
@@ -67,7 +65,7 @@ public class AmountValidatorTest {
     }
     
     @Test
-    public void isValid_shouldGenerateConstraintsValidationFromBothValidators_whenUsingTwoValidators() {
+    void isValid_shouldGenerateConstraintsValidationFromBothValidators_whenUsingTwoValidators() {
         Money money = new Money(new BigDecimal("100001"));
         DefaultValidatorTester defaultValidatorTester = new DefaultValidatorTester();
         defaultValidatorTester.balance = money;

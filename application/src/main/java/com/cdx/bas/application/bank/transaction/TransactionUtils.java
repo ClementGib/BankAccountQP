@@ -1,13 +1,12 @@
 package com.cdx.bas.application.bank.transaction;
 
-import com.cdx.bas.domain.bank.transaction.NewCashTransaction;
-import com.cdx.bas.domain.bank.transaction.NewDigitalTransaction;
 import com.cdx.bas.domain.bank.transaction.Transaction;
+import com.cdx.bas.domain.bank.transaction.category.NewCashTransaction;
+import com.cdx.bas.domain.bank.transaction.category.NewDigitalTransaction;
+import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import lombok.experimental.UtilityClass;
 
 import java.time.Clock;
-
-import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
 
 @UtilityClass
 public class TransactionUtils {
@@ -15,28 +14,31 @@ public class TransactionUtils {
     private static final Clock clock = Clock.systemDefaultZone();
 
     public static Transaction getNewDigitalTransaction(NewDigitalTransaction newDigitalTransaction) {
-        return Transaction.builder()
-                .emitterAccountId(newDigitalTransaction.emitterAccountId())
-                .receiverAccountId(newDigitalTransaction.receiverAccountId())
-                .amount(newDigitalTransaction.amount())
-                .currency(newDigitalTransaction.currency())
-                .type(newDigitalTransaction.type())
-                .status(UNPROCESSED)
-                .date(clock.instant())
-                .label(newDigitalTransaction.label())
-                .metadata(newDigitalTransaction.metadata())
-                .build();
+        Transaction transaction = new Transaction();
+        transaction.setEmitterAccountId(newDigitalTransaction.emitterAccountId());
+        transaction.setReceiverAccountId(newDigitalTransaction.receiverAccountId());
+        transaction.setAmount(newDigitalTransaction.amount());
+        transaction.setCurrency(newDigitalTransaction.currency());
+        transaction.setType(newDigitalTransaction.type());
+        transaction.setStatus(TransactionStatus.UNPROCESSED);  // Assuming UNPROCESSED is an enum constant
+        transaction.setDate(clock.instant());
+        transaction.setLabel(newDigitalTransaction.label());
+        transaction.setMetadata(newDigitalTransaction.metadata());
+        return transaction;
+
     }
 
     public static Transaction getNewCashTransaction(NewCashTransaction newCashTransaction) {
-        return Transaction.builder()
-                .emitterAccountId(newCashTransaction.emitterAccountId())
-                .amount(newCashTransaction.amount())
-                .currency(newCashTransaction.currency())
-                .metadata(newCashTransaction.metadata())
-                .date(clock.instant())
-                .status(UNPROCESSED)
-                .build();
+        Transaction transaction = new Transaction();
+        transaction.setEmitterAccountId(newCashTransaction.emitterAccountId());
+        transaction.setAmount(newCashTransaction.amount());
+        transaction.setCurrency(newCashTransaction.currency());
+        if (newCashTransaction.metadata() != null) {
+            transaction.setMetadata(newCashTransaction.metadata());
+        }
+        transaction.setDate(clock.instant());
+        transaction.setStatus(TransactionStatus.UNPROCESSED);  // Assuming UNPROCESSED is an enum constant
+        return transaction;
     }
 
     public static Transaction mergeTransactions(Transaction oldTransaction, Transaction newTransaction) {

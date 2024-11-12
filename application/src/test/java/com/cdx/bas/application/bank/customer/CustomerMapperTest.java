@@ -10,8 +10,8 @@ import com.cdx.bas.domain.bank.customer.Customer;
 import com.cdx.bas.domain.bank.customer.gender.Gender;
 import com.cdx.bas.domain.bank.customer.maritalstatus.MaritalStatus;
 import com.cdx.bas.domain.bank.transaction.Transaction;
+import com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
-import com.cdx.bas.domain.bank.transaction.type.TransactionType;
 import com.cdx.bas.domain.money.Money;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.WithTestResource;
@@ -28,8 +28,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.ERROR;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.CREDIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -161,8 +159,8 @@ class CustomerMapperTest {
         assertThat(dto.getAccounts()).hasSize(2);
         Set<BankAccount> accountsToCompare = Stream.of(account1, account2).collect(Collectors.toSet());
         assertThat(dto.getAccounts()).containsExactlyInAnyOrderElementsOf(accountsToCompare);
-        assertThat(dto.getMetadata().get("contact_preferences")).isEqualTo("email");
-        assertThat(dto.getMetadata().get("annual_salary")).isEqualTo("52000");
+        assertThat(dto.getMetadata()).containsEntry("contact_preferences", "email");
+        assertThat(dto.getMetadata()).containsEntry("annual_salary","52000");
         verify(bankAccountMapper).toDto(accountEntity1);
         verify(bankAccountMapper).toDto(accountEntity2);
         verifyNoMoreInteractions(bankAccountMapper);
@@ -236,39 +234,41 @@ class CustomerMapperTest {
         customersId.add(99L);
         bankAccount.setCustomersId(customersId);
         Set<Transaction> transactions = new HashSet<>();
-        transactions.add(Transaction.builder()
-                .id(100L)
-                .type(CREDIT)
-                .emitterAccountId(accountId)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("100"))
-                .currency("EUR")
-                .status(ERROR)
-                .date(timestamp)
-                .label("transaction test")
-                .build());
-        transactions.add(Transaction.builder()
-                .id(100L)
-                .type(CREDIT)
-                .emitterAccountId(accountId)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("100"))
-                .currency("EUR")
-                .status(ERROR)
-                .date(timestamp)
-                .label("transaction test")
-                .build());
-        transactions.add(Transaction.builder()
-                .id(100L)
-                .type(CREDIT)
-                .emitterAccountId(accountId)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("100"))
-                .currency("EUR")
-                .status(ERROR)
-                .date(timestamp)
-                .label("transaction test")
-                .build());
+        Transaction transaction1 = new Transaction();
+        transaction1.setId(100L);
+        transaction1.setType(TransactionType.CREDIT);
+        transaction1.setEmitterAccountId(accountId);
+        transaction1.setReceiverAccountId(77L);
+        transaction1.setAmount(new BigDecimal("100"));
+        transaction1.setCurrency("EUR");
+        transaction1.setStatus(TransactionStatus.ERROR);
+        transaction1.setDate(timestamp);
+        transaction1.setLabel("transaction test");
+        transactions.add(transaction1);
+
+        Transaction transaction2 = new Transaction();
+        transaction2.setId(100L);
+        transaction2.setType(TransactionType.CREDIT);
+        transaction2.setEmitterAccountId(accountId);
+        transaction2.setReceiverAccountId(77L);
+        transaction2.setAmount(new BigDecimal("100"));
+        transaction2.setCurrency("EUR");
+        transaction2.setStatus(TransactionStatus.ERROR);
+        transaction2.setDate(timestamp);
+        transaction2.setLabel("transaction test");
+        transactions.add(transaction2);
+
+        Transaction transaction3 = new Transaction();
+        transaction3.setId(100L);
+        transaction3.setType(TransactionType.CREDIT);
+        transaction3.setEmitterAccountId(accountId);
+        transaction3.setReceiverAccountId(77L);
+        transaction3.setAmount(new BigDecimal("100"));
+        transaction3.setCurrency("EUR");
+        transaction3.setStatus(TransactionStatus.ERROR);
+        transaction3.setDate(timestamp);
+        transaction3.setLabel("transaction test");
+        transactions.add(transaction3);
         bankAccount.setIssuedTransactions(transactions);
         return bankAccount;
     }

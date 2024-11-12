@@ -6,21 +6,33 @@ import com.cdx.bas.domain.bank.transaction.TransactionException;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatusServicePort;
 import com.cdx.bas.domain.message.MessageFormatter;
-import jakarta.enterprise.context.RequestScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.OUTSTANDING;
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
 import static com.cdx.bas.domain.message.CommonMessages.*;
+import static com.cdx.bas.domain.metadata.MetadataFieldNames.ERROR_KEY;
 
-@RequestScoped
+@ApplicationScoped
 public class TransactionStatusServiceImpl implements TransactionStatusServicePort {
 
     TransactionRepository transactionPersistencePort;
+
+    public TransactionStatus handleError(Exception exception, Map<String, String> metadata) {
+        if (exception instanceof NoSuchElementException) {
+            metadata.put(ERROR_KEY, exception.getMessage());
+            return TransactionStatus.ERROR;
+        } else {
+            metadata.put(ERROR_KEY, exception.getMessage());
+            return TransactionStatus.REFUSED;
+        }
+    }
 
     @Inject
     public TransactionStatusServiceImpl(TransactionRepository transactionPersistencePort) {
@@ -46,7 +58,7 @@ public class TransactionStatusServiceImpl implements TransactionStatusServicePor
             throw new TransactionException(MessageFormatter.format(TRANSACTION_CONTEXT, CHANGE_STATUS_ACTION, IS_NULL_STATUS));
         }
         transaction.setStatus(status);
-        transaction.setMetadata(metadata);
+        transaction.getMetadata().putAll(metadata);
         return transaction;
     }
 

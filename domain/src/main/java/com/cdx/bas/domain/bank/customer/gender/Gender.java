@@ -5,12 +5,12 @@ public enum Gender {
     FEMALE('F'),
     OTHER('O');
 
-    public final static char strMale = 'M';
-    public final static char strFemale = 'F';
-    public final static char strOther = 'O';
+    public static final char STR_MALE = 'M';
+    public static final char STR_FEMALE = 'F';
+    public static final char STR_OTHER = 'O';
     private final char genderCode;
 
-   Gender(Character maritalCode) {
+    Gender(Character maritalCode) {
         this.genderCode = maritalCode;
     }
 

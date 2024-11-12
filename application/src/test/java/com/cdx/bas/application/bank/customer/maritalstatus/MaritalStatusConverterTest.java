@@ -10,35 +10,35 @@ class MaritalStatusConverterTest {
     private final MaritalStatusConverter maritalStatusConverter = new MaritalStatusConverter();
 
     @Test
-    public void convertToDatabaseColumn_shouldConvertToMaritalCode() {
-        assertEquals(strSingle, maritalStatusConverter.convertToDatabaseColumn(SINGLE));
-        assertEquals(strMarried, maritalStatusConverter.convertToDatabaseColumn(MARRIED));
-        assertEquals(strWidowed, maritalStatusConverter.convertToDatabaseColumn(WIDOWED));
-        assertEquals(strDivorced, maritalStatusConverter.convertToDatabaseColumn(DIVORCED));
-        assertEquals(strPacs, maritalStatusConverter.convertToDatabaseColumn(PACS));
+    void convertToDatabaseColumn_shouldConvertToMaritalCode() {
+        assertEquals(STR_SINGLE, maritalStatusConverter.convertToDatabaseColumn(SINGLE));
+        assertEquals(STR_MARRIED, maritalStatusConverter.convertToDatabaseColumn(MARRIED));
+        assertEquals(STR_WIDOWED, maritalStatusConverter.convertToDatabaseColumn(WIDOWED));
+        assertEquals(STR_DIVORCED, maritalStatusConverter.convertToDatabaseColumn(DIVORCED));
+        assertEquals(STR_PACS, maritalStatusConverter.convertToDatabaseColumn(PACS));
     }
 
     @Test
-    public void convertToDatabaseColumn_shouldReturnNull_whenMaritalStatusIsNull() {
+    void convertToDatabaseColumn_shouldReturnNull_whenMaritalStatusIsNull() {
         assertNull(maritalStatusConverter.convertToDatabaseColumn(null));
     }
 
     @Test
-    public void convertToEntityAttribute_shouldConvertToMaritalStatus() {
-        assertEquals(SINGLE, maritalStatusConverter.convertToEntityAttribute(strSingle));
-        assertEquals(MARRIED, maritalStatusConverter.convertToEntityAttribute(strMarried));
-        assertEquals(WIDOWED, maritalStatusConverter.convertToEntityAttribute(strWidowed));
-        assertEquals(DIVORCED, maritalStatusConverter.convertToEntityAttribute(strDivorced));
-        assertEquals(PACS, maritalStatusConverter.convertToEntityAttribute(strPacs));
+    void convertToEntityAttribute_shouldConvertToMaritalStatus() {
+        assertEquals(SINGLE, maritalStatusConverter.convertToEntityAttribute(STR_SINGLE));
+        assertEquals(MARRIED, maritalStatusConverter.convertToEntityAttribute(STR_MARRIED));
+        assertEquals(WIDOWED, maritalStatusConverter.convertToEntityAttribute(STR_WIDOWED));
+        assertEquals(DIVORCED, maritalStatusConverter.convertToEntityAttribute(STR_DIVORCED));
+        assertEquals(PACS, maritalStatusConverter.convertToEntityAttribute(STR_PACS));
     }
 
     @Test
-    public void convertToEntityAttribute_shouldReturnNull_whenMaritalCodeIsNull() {
+    void convertToEntityAttribute_shouldReturnNull_whenMaritalCodeIsNull() {
         assertNull(maritalStatusConverter.convertToEntityAttribute(null));
     }
 
     @Test
-    public void convertToEntityAttribute_shouldThrowExceptionForInvalidDatabaseColumn() {
+    void convertToEntityAttribute_shouldThrowExceptionForInvalidDatabaseColumn() {
         assertThrows(IllegalStateException.class, () -> maritalStatusConverter.convertToEntityAttribute('X'));
     }
 }

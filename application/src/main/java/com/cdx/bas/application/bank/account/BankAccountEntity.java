@@ -3,12 +3,22 @@ package com.cdx.bas.application.bank.account;
 import com.cdx.bas.application.bank.customer.CustomerEntity;
 import com.cdx.bas.application.bank.transaction.TransactionEntity;
 import com.cdx.bas.domain.bank.account.type.AccountType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(schema = "basapp", name = "bank_accounts", uniqueConstraints = @UniqueConstraint(columnNames = "account_id"))
 public class BankAccountEntity extends PanacheEntityBase {
@@ -26,59 +36,34 @@ public class BankAccountEntity extends PanacheEntityBase {
     @Column(name = "balance", nullable = false)
     private BigDecimal balance;
 
-    @ManyToMany(mappedBy = "accounts", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @JsonIgnore
+    @ManyToMany(mappedBy = "accounts", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
     private Set<CustomerEntity> customers = new HashSet<>();
 
     @OneToMany(mappedBy = "emitterBankAccountEntity", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @OrderBy("date")
     private Set<TransactionEntity> issuedTransactions = new HashSet<>();
 
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public AccountType getType() {
-        return type;
-    }
-
-    public void setType(AccountType type) {
-        this.type = type;
-    }
-
-    public BigDecimal getBalance() {
-        return balance;
-    }
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
-
-    public Set<CustomerEntity> getCustomers() {
-        return customers;
-    }
-
-    public void setCustomers(Set<CustomerEntity> customers) {
-        this.customers = customers;
-    }
-
-    public Set<TransactionEntity> getIssuedTransactions() {
-        return issuedTransactions;
-    }
-
-    public void setIssuedTransactions(Set<TransactionEntity> issuedTransactions) {
-        this.issuedTransactions = issuedTransactions;
-    }
+    @OneToMany(mappedBy = "receiverBankAccountEntity")
+    @OrderBy("date")
+    private Set<TransactionEntity> incomingTransactions = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BankAccountEntity that = (BankAccountEntity) o;
-        return Objects.equals(id, that.id) && type == that.type && Objects.equals(balance, that.balance) && Objects.equals(customers, that.customers) && Objects.equals(issuedTransactions, that.issuedTransactions);
+        return Objects.equals(id, that.id)
+                && type == that.type
+                && Objects.equals(balance, that.balance)
+                && Objects.equals(customers, that.customers)
+                && Objects.equals(issuedTransactions, that.issuedTransactions)
+                && Objects.equals(incomingTransactions, that.incomingTransactions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, type, balance);
     }
 }

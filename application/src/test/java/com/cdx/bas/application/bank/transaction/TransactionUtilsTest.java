@@ -1,9 +1,10 @@
 package com.cdx.bas.application.bank.transaction;
 
-import com.cdx.bas.domain.bank.transaction.NewCashTransaction;
-import com.cdx.bas.domain.bank.transaction.NewDigitalTransaction;
 import com.cdx.bas.domain.bank.transaction.Transaction;
-import com.cdx.bas.domain.bank.transaction.type.TransactionType;
+import com.cdx.bas.domain.bank.transaction.category.NewCashTransaction;
+import com.cdx.bas.domain.bank.transaction.category.NewDigitalTransaction;
+import com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType;
+import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -11,13 +12,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
+import static com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType.DEBIT;
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.CREDIT;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.DEBIT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,16 +38,16 @@ class TransactionUtilsTest {
         Transaction actualDigitalTransaction = TransactionUtils.getNewDigitalTransaction(newDigitalTransaction);
 
         // Assert
-        Transaction expectedDigitalTransaction = Transaction.builder()
-                .emitterAccountId(1L)
-                .receiverAccountId(2L)
-                .amount(new BigDecimal("100"))
-                .currency("USD")
-                .type(CREDIT)
-                .status(UNPROCESSED)
-                .label("credit transaction")
-                .metadata(new HashMap<>())
-                .build();
+        Transaction expectedDigitalTransaction = new Transaction();
+        expectedDigitalTransaction.setEmitterAccountId(1L);
+        expectedDigitalTransaction.setReceiverAccountId(2L);
+        expectedDigitalTransaction.setAmount(new BigDecimal("100"));
+        expectedDigitalTransaction.setCurrency("USD");
+        expectedDigitalTransaction.setType(TransactionType.CREDIT);
+        expectedDigitalTransaction.setStatus(TransactionStatus.UNPROCESSED);
+        expectedDigitalTransaction.setLabel("credit transaction");
+        expectedDigitalTransaction.setMetadata(new HashMap<>());
+
         assertThat(actualDigitalTransaction)
                 .usingRecursiveComparison()
                 .ignoringFieldsOfTypes(Instant.class)
@@ -73,13 +71,12 @@ class TransactionUtilsTest {
         Transaction actualCashTransaction = TransactionUtils.getNewCashTransaction(newDigitalTransaction);
 
         // Assert
-        Transaction expectedCashTransaction = Transaction.builder()
-                .emitterAccountId(1L)
-                .amount(new BigDecimal("100"))
-                .currency("USD")
-                .status(UNPROCESSED)
-                .metadata(new HashMap<>())
-                .build();
+        Transaction expectedCashTransaction = new Transaction();
+        expectedCashTransaction.setEmitterAccountId(1L);
+        expectedCashTransaction.setAmount(new BigDecimal("100"));
+        expectedCashTransaction.setCurrency("USD");
+        expectedCashTransaction.setStatus(TransactionStatus.UNPROCESSED);
+        expectedCashTransaction.setMetadata(new HashMap<>());
         assertThat(actualCashTransaction)
                 .usingRecursiveComparison()
                 .ignoringFieldsOfTypes(Instant.class)
@@ -92,30 +89,28 @@ class TransactionUtilsTest {
     @Test
     void shouldMergeOldTransactionWithNewTransaction_whenOldTransactionAndNewTransactionAreValid() {
         // Arrange
-        Transaction oldTransaction = Transaction.builder()
-                .id(1L)
-                .amount(new BigDecimal(100))
-                .emitterAccountId(10L)
-                .receiverAccountId(11L)
-                .type(CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now())
-                .label("old transaction")
-                .build();
+        Transaction oldTransaction = new Transaction();
+        oldTransaction.setId(1L);
+        oldTransaction.setAmount(new BigDecimal(100));
+        oldTransaction.setEmitterAccountId(10L);
+        oldTransaction.setReceiverAccountId(11L);
+        oldTransaction.setType(TransactionType.CREDIT);
+        oldTransaction.setStatus(TransactionStatus.UNPROCESSED);
+        oldTransaction.setDate(Instant.now());
+        oldTransaction.setLabel("old transaction");
 
         Instant dateAfter = Instant.now();
         BigDecimal bigDecimalAfter = new BigDecimal(200);
         String labelAfter = "new transaction";
-        Transaction newTransaction = Transaction.builder()
-                .id(2L)
-                .amount(bigDecimalAfter)
-                .emitterAccountId(20L)
-                .receiverAccountId(22L)
-                .type(DEBIT)
-                .status(UNPROCESSED)
-                .date(dateAfter)
-                .label(labelAfter)
-                .build();
+        Transaction newTransaction = new Transaction();
+        newTransaction.setId(2L);
+        newTransaction.setAmount(bigDecimalAfter);
+        newTransaction.setEmitterAccountId(20L);
+        newTransaction.setReceiverAccountId(22L);
+        newTransaction.setType(TransactionType.DEBIT);
+        newTransaction.setStatus(TransactionStatus.UNPROCESSED);
+        newTransaction.setDate(dateAfter);
+        newTransaction.setLabel(labelAfter);
 
         // Act
         Transaction actualTransaction = TransactionUtils.mergeTransactions(oldTransaction, newTransaction);
@@ -132,18 +127,4 @@ class TransactionUtilsTest {
         // Assert
         assertThat(actualTransaction).isEqualTo(oldTransaction);
     }
-
-    @Test
-    public void test() {
-        Transaction t1 = Transaction.builder().build();
-        Transaction t2 = Transaction.builder().build();
-
-        Set transactions = new HashSet<Transaction>();
-
-        transactions.add(t1);
-        transactions.add(t2);
-
-        System.out.println(transactions);
-    }
-
 }

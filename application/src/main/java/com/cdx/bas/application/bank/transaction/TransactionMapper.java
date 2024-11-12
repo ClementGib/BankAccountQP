@@ -20,29 +20,30 @@ import static com.cdx.bas.domain.message.CommonMessages.*;
 @RequestScoped
 public class TransactionMapper implements DtoEntityMapper<Transaction, TransactionEntity> {
 
-    @Inject
+    public static final String EMPTY_JSON = "{}";
+
     TransactionRepository transactionRepository;
-
-    @Inject
     BankAccountRepository bankAccountRepository;
-
-    @Inject
     ObjectMapper objectMapper;
 
+    @Inject
+    public TransactionMapper(TransactionRepository transactionRepository, BankAccountRepository bankAccountRepository, ObjectMapper objectMapper) {
+        this.transactionRepository = transactionRepository;
+        this.bankAccountRepository = bankAccountRepository;
+        this.objectMapper = objectMapper;
+    }
+
     public Transaction toDto(TransactionEntity entity) {
-        Transaction dto = Transaction.builder()
-                .id(entity.getId())
-                .type(entity.getType())
-                .currency(entity.getCurrency())
-                .status(entity.getStatus())
-                .date(entity.getDate())
-                .label(entity.getLabel())
-                .build();
+        Transaction dto = new Transaction();
+        dto.setId(entity.getId());
+        dto.setType(entity.getType());
+        dto.setCurrency(entity.getCurrency());
+        dto.setStatus(entity.getStatus());
+        dto.setDate(entity.getDate());
+        dto.setLabel(entity.getLabel());
 
         if (entity.getEmitterBankAccountEntity() != null) {
             dto.setEmitterAccountId(entity.getEmitterBankAccountEntity().getId());
-        } else {
-            throw new NoSuchElementException("Transaction does not have emitter bank account.");
         }
 
         if (entity.getReceiverBankAccountEntity() != null) {
@@ -55,8 +56,7 @@ public class TransactionMapper implements DtoEntityMapper<Transaction, Transacti
 
         try {
             if (entity.getMetadata() != null) {
-                dto.setMetadata(objectMapper.readValue(entity.getMetadata(), new TypeReference<HashMap<String, String>>() {
-                }));
+                dto.setMetadata(objectMapper.readValue(entity.getMetadata(), new TypeReference<HashMap<String, String>>() {}));
             } else {
                 dto.setMetadata(new HashMap<>());
             }
@@ -75,14 +75,20 @@ public class TransactionMapper implements DtoEntityMapper<Transaction, Transacti
             entity.setId(dto.getId());
         }
 
-        BankAccountEntity emitterBankAccountEntity = bankAccountRepository.findByIdOptional(dto.getEmitterAccountId())
-                .orElseThrow(() -> new NoSuchElementException("Transaction does not have emitter bank account entity."));
-        entity.setEmitterBankAccountEntity(emitterBankAccountEntity);
+        if (dto.getEmitterAccountId() != null) {
+            BankAccountEntity emitterBankAccountEntity = bankAccountRepository.findByIdOptional(dto.getEmitterAccountId())
+                    .orElseThrow(() -> new NoSuchElementException("Transaction does not have emitter bank account entity."));
+            entity.setEmitterBankAccountEntity(emitterBankAccountEntity);
+        } else {
+            entity.setEmitterBankAccountEntity(null);
+        }
 
         if (dto.getReceiverAccountId() != null) {
             BankAccountEntity receiverBankAccountEntity = bankAccountRepository.findByIdOptional(dto.getReceiverAccountId())
                     .orElseThrow(() -> new NoSuchElementException("Transaction does not have receiver bank account entity."));
             entity.setReceiverBankAccountEntity(receiverBankAccountEntity);
+        } else {
+            entity.setReceiverBankAccountEntity(null);
         }
 
         entity.setAmount(dto.getAmount());
@@ -93,10 +99,10 @@ public class TransactionMapper implements DtoEntityMapper<Transaction, Transacti
         entity.setLabel(dto.getLabel());
 
         try {
-            if (!dto.getMetadata().isEmpty()) {
+            if (dto.getMetadata() != null && !dto.getMetadata().isEmpty()) {
                 entity.setMetadata(objectMapper.writeValueAsString(dto.getMetadata()));
             } else {
-                entity.setMetadata(null);
+                entity.setMetadata(EMPTY_JSON);
             }
         } catch (JsonProcessingException exception) {
             throw new MappingException(MessageFormatter.format(TRANSACTION_CONTEXT, MAP_PARSE_METADATA, FAILED_STATUS), exception);

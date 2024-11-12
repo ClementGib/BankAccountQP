@@ -17,6 +17,22 @@ public interface TransactionPersistencePort {
     public Optional<Transaction> findById(long id);
 
     /**
+     * find Transaction from its id
+     *
+     * @param emitterBankAccountId of Transaction
+     * @return Set<Transaction> Transactions that match with emitter id
+     */
+    public Set<Transaction> findTransactionsByEmitterBankAccount(long emitterBankAccountId);
+
+    /**
+     * find Transaction from its id
+     *
+     * @param receiverBankAccountId of Transaction
+     * @return Set<Transaction> Transactions that match with receiver id
+     */
+    public Set<Transaction> findTransactionsByReceiverBankAccount(long receiverBankAccountId);
+
+    /**
      * find all transactions
      *
      * @return Set with all the transactions

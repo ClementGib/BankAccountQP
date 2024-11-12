@@ -1,7 +1,7 @@
 -- DB SEQ ALTER
-ALTER SEQUENCE basapp.customers_customer_id_seq RESTART WITH 10;
-ALTER SEQUENCE basapp.bank_accounts_account_id_seq RESTART WITH 10;
-ALTER SEQUENCE basapp.transactions_transaction_id_seq RESTART WITH 10;
+ALTER SEQUENCE basapp.customers_customer_id_seq RESTART WITH 20;
+ALTER SEQUENCE basapp.bank_accounts_account_id_seq RESTART WITH 20;
+ALTER SEQUENCE basapp.transactions_transaction_id_seq RESTART WITH 20;
 
 
 INSERT INTO basapp.customers(customer_id, first_name, last_name, gender, marital_status, birthday, country, address, city, email, phone_number, metadata)
@@ -42,4 +42,6 @@ VALUES (1, 1, 2, 'CREDIT', 1600.00, 'EUR', 'COMPLETED', TIMESTAMP WITH TIME ZONE
        (6, 1, 7, 'DEBIT', 2000.00, 'EUR', 'UNPROCESSED', TIMESTAMP WITH TIME ZONE '2024-11-06 18:30:00+01:00', 'transaction 6', null),
        (7, 3, 1, 'CREDIT', 1000.00, 'EUR', 'UNPROCESSED', TIMESTAMP WITH TIME ZONE '2024-12-06 18:00:00+01:00', 'transaction 7', null),
        (8, 4, 2, 'DEBIT', 300.80, 'EUR', 'UNPROCESSED', TIMESTAMP WITH TIME ZONE '2024-12-06 19:00:00+01:00', 'transaction 8', null),
-       (9, 8, 7, 'DEBIT', 5000.00, 'EUR', 'UNPROCESSED', TIMESTAMP WITH TIME ZONE '2024-12-06 19:00:10+01:00', 'transaction 9', null);
+       (9, 8, 7, 'DEBIT', 5000.00, 'EUR', 'UNPROCESSED', TIMESTAMP WITH TIME ZONE '2024-12-06 19:00:10+01:00', 'transaction 9', null),
+       (10, 1, null, 'DEPOSIT', 100.00, 'EUR', 'COMPLETED', TIMESTAMP WITH TIME ZONE '2024-12-06 19:00:10+01:00', 'transaction 10', null),
+       (11, 1, null, 'WITHDRAW', 200.00, 'EUR', 'COMPLETED', TIMESTAMP WITH TIME ZONE '2024-12-06 19:00:10+01:00', 'transaction 11', null);

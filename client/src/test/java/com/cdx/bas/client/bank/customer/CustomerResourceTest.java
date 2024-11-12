@@ -25,7 +25,7 @@ class CustomerResourceTest {
     CustomerResource customerResource;
 
     @Test
-    public void getAll_shouldReturnAllCustomers() {
+    void getAll_shouldReturnAllCustomers() {
         Set<Customer> expectedCustomers = Set.of(
                 new Customer(1L, "John", "Doe", MALE, SINGLE, LocalDate.of(1980, 1, 1), "US", "200 Central Park West, NY 10024", "New York", "johndoe@bas.com", "+1 212-769-5100", Collections.emptyList(), Map.of("contact_preferences", "phone", "annual_salary", "52000", "newsletter", "false")),
                 new Customer(2L, "Anne", "Jean", FEMALE, MARRIED, LocalDate.of(1993, 7, 11), "FR", "2 rue du chateau", "Marseille", "annej@bas.com", "+36 6 50 44 12 05", Collections.emptyList(), Map.of("contact_preferences", "phone", "annual_salary", "52000", "newsletter", "false")),
@@ -44,7 +44,7 @@ class CustomerResourceTest {
     }
 
     @Test
-    public void getCustomer_shouldReturnCustomer() {
+    void getCustomer_shouldReturnCustomer() {
         Customer expectedCustomer = new Customer(6L, "Juan", "Pedros", MALE, SINGLE, LocalDate.of(1975, 12, 17), "ES", "Place de las Delicias", "Sevilla", "juanito@bas.com", "+34 9 20 55 62 05", Collections.emptyList(), Map.of("contact_preferences", "phone", "annual_salary", "200000", "newsletter", "false"));
 
         Customer actualCustomer = customerResource.getCustomer(6L);

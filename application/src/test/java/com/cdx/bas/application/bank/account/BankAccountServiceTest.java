@@ -2,123 +2,92 @@ package com.cdx.bas.application.bank.account;
 
 import com.cdx.bas.domain.bank.account.BankAccount;
 import com.cdx.bas.domain.bank.account.BankAccountException;
-import com.cdx.bas.domain.bank.account.BankAccountPersistencePort;
 import com.cdx.bas.domain.bank.account.BankAccountServicePort;
 import com.cdx.bas.domain.bank.account.checking.CheckingBankAccount;
-import com.cdx.bas.domain.bank.account.validation.BankAccountValidator;
+import com.cdx.bas.domain.bank.account.mma.MMABankAccount;
+import com.cdx.bas.domain.bank.account.saving.SavingBankAccount;
+import com.cdx.bas.domain.bank.account.type.AccountType;
 import com.cdx.bas.domain.bank.transaction.Transaction;
-import com.cdx.bas.domain.bank.transaction.TransactionException;
-import com.cdx.bas.domain.bank.transaction.TransactionServicePort;
+import com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType;
+import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import com.cdx.bas.domain.money.Money;
-import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
-import static com.cdx.bas.domain.bank.account.type.AccountType.CHECKING;
-import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.ERROR;
-import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @WithTestResource(H2DatabaseTestResource.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class BankAccountServiceTest {
-
-    @InjectMock
-    BankAccountPersistencePort bankAccountRepository;
-
-    @InjectMock
-    BankAccountValidator bankAccountValidator;
-
-    @InjectMock
-    TransactionServicePort transactionService;
 
     @Inject
     BankAccountServicePort bankAccountService;
 
     @Test
+    @Order(1)
     void shouldGetAllBankAccounts_whenRepositoryFoundBankAccounts() {
         // Arrange
-        BankAccount bankAccount1 = CheckingBankAccount.builder()
-                .id(99L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("100")))
-                .customersId(Set.of(99L))
-                .build();
-        BankAccount bankAccount2 = CheckingBankAccount.builder()
-                .id(100L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("10")))
-                .customersId(Set.of(100L))
-                .build();
-
-        BankAccount bankAccount3 = CheckingBankAccount.builder()
-                .id(101L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("20")))
-                .customersId(Set.of(101L))
-                .build();
-        List<BankAccount> bankAccounts = List.of(bankAccount1, bankAccount2, bankAccount3);
-        when(bankAccountRepository.getAll()).thenReturn(bankAccounts);
+        List<BankAccount> bankAccounts = getAllBankAccounts();
 
         // Act
         List<BankAccount> actualBankAccounts = bankAccountService.getAll();
 
         // Assert
-        assertThat(actualBankAccounts).containsExactlyInAnyOrderElementsOf(bankAccounts);
+        assertThat(actualBankAccounts).usingRecursiveComparison()
+                .ignoringFields("customersId", "issuedTransactions", "incomingTransactions")
+                .isEqualTo(bankAccounts);
     }
 
     @Test
+    @Order(2)
     void shouldFindBankAccount_whenBankAccountExists() {
         // Arrange
-        BankAccount bankAccount = CheckingBankAccount.builder()
-                .id(99L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("100")))
-                .customersId(Set.of(99L))
-                .build();
-
-        when(bankAccountRepository.findById(1L)).thenReturn(Optional.of(bankAccount));
+        long id = 1L;
+        BankAccount bankAccount = new CheckingBankAccount();
+        bankAccount.setId(id);
+        bankAccount.setType(AccountType.CHECKING); // Replace CHECKING with your specific enum if different
+        bankAccount.setBalance(Money.of(new BigDecimal("400.00")));
+        bankAccount.setCustomersId(Set.of(1L));
 
         // Act
         BankAccount actualBankAccount = bankAccountService.findBankAccount(1L);
 
         // Assert
-        assertThat(actualBankAccount).isEqualTo(bankAccount);
-        verify(bankAccountRepository).findById(1L);
-        verifyNoMoreInteractions(bankAccountRepository);
-        verifyNoInteractions(transactionService);
+        assertThat(actualBankAccount)
+                .usingRecursiveComparison()
+                .ignoringFields("customersId", "issuedTransactions", "incomingTransactions")
+                .isEqualTo(bankAccount);
     }
 
     @Test
     void shouldReturnNull_whenBankAccountDoesNotExist() {
         // Arrange
-        long id = 1L;
-        when(bankAccountRepository.findById(id)).thenReturn(Optional.empty());
+        long id = 99L;
 
         // Act
         try {
-            bankAccountService.findBankAccount(1L);
+            bankAccountService.findBankAccount(id);
             fail("Bank account does not exist");
         } catch (BankAccountException exception) {
             // Assert
-            String expectedMessage = "Bank account: searching failed - not found\nBank account id:" + id;
+            String expectedMessage = "Bank account: searching failed - not found\n" + "Bank account id:" + id;
             assertThat(exception).hasMessage(expectedMessage);
-            verify(bankAccountRepository).findById(1L);
-            verifyNoMoreInteractions(bankAccountRepository, bankAccountValidator);
-            verifyNoInteractions(transactionService);
         }
     }
 
@@ -126,59 +95,52 @@ class BankAccountServiceTest {
     void shouldAddTransactionToBankAccount_whenTransactionDoesNotExist() {
         // Arrange
         Instant timestamp = Instant.now();
-        BankAccount bankAccount = CheckingBankAccount.builder()
-                .id(99L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("100")))
-                .customersId(Set.of(99L))
-                .issuedTransactions(new HashSet<>())
-                .build();
+        BankAccount bankAccount = new CheckingBankAccount();
+        bankAccount.setId(99L);
+        bankAccount.setType(AccountType.CHECKING);
+        bankAccount.setBalance(Money.of(new BigDecimal("100")));
+        bankAccount.setCustomersId(Set.of(99L));
+        bankAccount.setIssuedTransactions(new HashSet<>());
 
-        // Act
-        Transaction transaction = Transaction.builder()
-                .id(10L)
-                .type(CREDIT)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("100"))
-                .currency("EUR")
-                .status(ERROR)
-                .date(timestamp)
-                .label("transaction test")
-                .build();
+        Transaction transaction = new Transaction();
+        transaction.setId(10L);
+        transaction.setType(TransactionType.CREDIT);
+        transaction.setEmitterAccountId(99L);
+        transaction.setReceiverAccountId(77L);
+        transaction.setAmount(new BigDecimal("100"));
+        transaction.setCurrency("EUR");
+        transaction.setStatus(TransactionStatus.ERROR);
+        transaction.setDate(timestamp);
+        transaction.setLabel("transaction test");
 
         // Assert
         BankAccount actualBankAccount = bankAccountService.putTransaction(transaction, bankAccount);
         assertThat(actualBankAccount.getIssuedTransactions()).hasSize(1);
         assertThat(actualBankAccount.getIssuedTransactions()).contains(transaction);
-
-        verifyNoInteractions(transactionService, bankAccountValidator, bankAccountRepository);
     }
 
     @Test
     void shouldUpdateTransactionToBankAccount_whenTransactionExists() {
         // Arrange
         Instant timestamp = Instant.now();
-        BankAccount bankAccount = CheckingBankAccount.builder()
-                .id(99L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("100")))
-                .customersId(Set.of(99L))
-                .issuedTransactions(new HashSet<>())
-                .build();
-        Transaction transaction = Transaction.builder()
-                .id(10L)
-                .type(CREDIT)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("100"))
-                .currency("EUR")
-                .status(ERROR)
-                .date(timestamp)
-                .label("transaction test")
-                .build();
-        bankAccount.getIssuedTransactions().add(transaction);
+        BankAccount bankAccount = new CheckingBankAccount();
+        bankAccount.setId(99L);
+        bankAccount.setType(AccountType.CHECKING);
+        bankAccount.setBalance(Money.of(new BigDecimal("100")));
+        bankAccount.setCustomersId(Set.of(99L));
+        bankAccount.setIssuedTransactions(new HashSet<>());
 
+        Transaction transaction = new Transaction();
+        transaction.setId(10L);
+        transaction.setType(TransactionType.CREDIT);
+        transaction.setEmitterAccountId(99L);
+        transaction.setReceiverAccountId(77L);
+        transaction.setAmount(new BigDecimal("100"));
+        transaction.setCurrency("EUR");
+        transaction.setStatus(TransactionStatus.ERROR); // Assuming ERROR is an enum value
+        transaction.setDate(timestamp); // Assuming timestamp is a defined Instant variable
+        transaction.setLabel("transaction test");
+        bankAccount.getIssuedTransactions().add(transaction);
 
         // Act
         BankAccount actualBankAccount = bankAccountService.putTransaction(transaction, bankAccount);
@@ -186,224 +148,95 @@ class BankAccountServiceTest {
         // Assert
         assertThat(actualBankAccount.getIssuedTransactions()).hasSize(1);
         assertThat(actualBankAccount.getIssuedTransactions()).contains(transaction);
-        verifyNoMoreInteractions(transactionService);
-        verifyNoInteractions(bankAccountValidator, bankAccountRepository);
     }
 
     @Test
     void shouldUpdateBankAccount_whenHasValidBankAccount() {
         // Arrange
-        BankAccount bankAccount = CheckingBankAccount.builder()
-                .id(99L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("100")))
-                .customersId(Set.of(99L))
-                .build();
+        long id = 8L;
+        BankAccount bankAccount = new CheckingBankAccount();
+        bankAccount.setId(id);
+        bankAccount.setType(AccountType.CHECKING);
+        bankAccount.setBalance(Money.of(new BigDecimal("0.00")));
+        bankAccount.setCustomersId(Set.of(6L));
+
+        Transaction transaction9 = new Transaction();
+        transaction9.setId(9L);
+        transaction9.setEmitterAccountId(8L);
+        transaction9.setReceiverAccountId(7L);
+        transaction9.setType(TransactionType.DEBIT);
+        transaction9.setAmount(new BigDecimal("5000.00"));
+        transaction9.setCurrency("EUR");
+        transaction9.setStatus(TransactionStatus.UNPROCESSED);
+
+        ZonedDateTime timestamp = ZonedDateTime.of(2024, 12, 6, 19, 0, 10, 0, ZoneOffset.ofHours(1));
+        transaction9.setDate(timestamp.toInstant());
+
+        transaction9.setLabel("transaction 9");
+        transaction9.setMetadata(null);
+        bankAccount.setIncomingTransactions(Set.of(transaction9));
 
         // Act
         BankAccount actualBankAccount = bankAccountService.updateBankAccount(bankAccount);
 
         // Assert
-        assertThat(actualBankAccount).isNull();
-        verify(bankAccountValidator).validateBankAccount(bankAccount);
-        verify(bankAccountRepository).update(bankAccount);
-        verifyNoMoreInteractions(bankAccountValidator, bankAccountRepository);
-        verifyNoInteractions(transactionService);
+        BankAccount expectedBankAccount = bankAccountService.findBankAccount(id);
+        assertThat(actualBankAccount)
+                .usingRecursiveComparison()
+                .isEqualTo(expectedBankAccount);
     }
 
-    @Test
-    void shouldCreditBankAccountWithAmount_whenHasValidCreditTransaction() {
-        // Arrange
-        Transaction transaction = Transaction.builder()
-                .id(10L)
-                .type(CREDIT)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("100"))
-                .currency("EUR")
-                .status(ERROR)
-                .date(Instant.now())
-                .label("transaction test")
-                .build();
-        BankAccount bankAccountEmitter = CheckingBankAccount.builder()
-                .id(99L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("100")))
-                .customersId(Set.of(99L))
-                .build();
-        BankAccount bankAccountReceiver = CheckingBankAccount.builder()
-                .id(100L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("0")))
-                .customersId(Set.of(99L))
-                .build();
 
-        // Act
-        bankAccountService.creditAmountToAccounts(transaction, bankAccountEmitter, bankAccountReceiver);
+    private static List<BankAccount> getAllBankAccounts() {
+        BankAccount bankAccount1 = new CheckingBankAccount();
+        bankAccount1.setId(1L);
+        bankAccount1.setType(AccountType.CHECKING);
+        bankAccount1.setBalance(Money.of(new BigDecimal("400.00")));
+        bankAccount1.setCustomersId(Set.of(1L)); // Replace with appropriate customer IDs if available
 
-        // Assert
-        assertThat(bankAccountEmitter.getBalance().getAmount()).isEqualTo(new BigDecimal("0.0"));
-        assertThat(bankAccountReceiver.getBalance().getAmount()).isEqualTo(new BigDecimal("100.0"));
-        verifyNoInteractions(transactionService, bankAccountValidator, bankAccountRepository);
-    }
+        BankAccount bankAccount2 = new CheckingBankAccount();
+        bankAccount2.setId(2L);
+        bankAccount2.setType(AccountType.CHECKING);
+        bankAccount2.setBalance(Money.of(new BigDecimal("1600.00")));
+        bankAccount2.setCustomersId(Set.of(2L));
 
-    @Test
-    void shouldThrowTransactionException_whenCreditTransactionHasNegativeAmount() {
-        // Arrange
-        Transaction transaction = Transaction.builder()
-                .id(10L)
-                .type(CREDIT)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("-100"))
-                .currency("EUR")
-                .status(ERROR)
-                .date(Instant.now())
-                .label("transaction test")
-                .build();
-        BankAccount bankAccountEmitter = CheckingBankAccount.builder()
-                .id(99L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("100")))
-                .customersId(Set.of(99L))
-                .build();
-        BankAccount bankAccountReceiver = CheckingBankAccount.builder()
-                .id(100L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("0")))
-                .customersId(Set.of(99L))
-                .build();
+        BankAccount bankAccount3 = new SavingBankAccount();
+        bankAccount3.setId(3L);
+        bankAccount3.setType(AccountType.SAVING);
+        bankAccount3.setBalance(Money.of(new BigDecimal("19200.00")));
+        bankAccount3.setCustomersId(Set.of(3L));
 
-        // Act
-        try {
-            bankAccountService.creditAmountToAccounts(transaction, bankAccountEmitter, bankAccountReceiver);
-        } catch (TransactionException exception) {
-            // Assert
-            String expectedMessage = "Credit transaction: credit failed - should have positive value\nTransaction id:10\nEuro amount:-100.0";
-            assertThat(exception.getMessage()).isEqualTo(expectedMessage);
-            verifyNoInteractions(transactionService, bankAccountValidator, bankAccountRepository);
-        }
-    }
+        BankAccount bankAccount4 = new CheckingBankAccount();
+        bankAccount4.setId(4L);
+        bankAccount4.setType(AccountType.CHECKING);
+        bankAccount4.setBalance(Money.of(new BigDecimal("500.00")));
+        bankAccount4.setCustomersId(Set.of(4L));
 
-    @Test
-    void shouldDepositAmountToBankAccount_whenHasValidDepositTransaction() {
-        // Arrange
-        Transaction transaction = Transaction.builder()
-                .id(10L)
-                .type(DEPOSIT)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("100"))
-                .currency("EUR")
-                .status(UNPROCESSED)
-                .date(Instant.now())
-                .label("transaction test")
-                .build();
-        BankAccount bankAccountEmitter = CheckingBankAccount.builder()
-                .id(99L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("0")))
-                .customersId(Set.of(99L))
-                .build();
+        BankAccount bankAccount5 = new MMABankAccount(); // Assuming MMA corresponds to Money Market Account
+        bankAccount5.setId(5L);
+        bankAccount5.setType(AccountType.MMA);
+        bankAccount5.setBalance(Money.of(new BigDecimal("65000.00")));
+        bankAccount5.setCustomersId(Set.of(5L));
 
-        // Act
-        bankAccountService.depositAmountToAccount(transaction, bankAccountEmitter);
+        BankAccount bankAccount6 = new SavingBankAccount();
+        bankAccount6.setId(6L);
+        bankAccount6.setType(AccountType.SAVING);
+        bankAccount6.setBalance(Money.of(new BigDecimal("999.00")));
+        bankAccount6.setCustomersId(Set.of(6L));
 
-        // Assert
-        assertThat(bankAccountEmitter.getBalance().getAmount()).isEqualTo(new BigDecimal("100.0"));
-        verifyNoInteractions(transactionService, bankAccountValidator, bankAccountRepository);
-    }
+        BankAccount bankAccount7 = new CheckingBankAccount();
+        bankAccount7.setId(7L);
+        bankAccount7.setType(AccountType.CHECKING);
+        bankAccount7.setBalance(Money.of(new BigDecimal("0.00")));
+        bankAccount7.setCustomersId(Set.of(7L));
 
-    @Test
-    void shouldThrowTransactionException_whenDepositTransactionHasNegativeAmount() {
-        // Arrange
-        Transaction transaction = Transaction.builder()
-                .id(10L)
-                .type(DEPOSIT)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("-100"))
-                .currency("EUR")
-                .status(UNPROCESSED)
-                .date(Instant.now())
-                .label("transaction test")
-                .build();
-        BankAccount bankAccountEmitter = CheckingBankAccount.builder()
-                .id(99L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("100")))
-                .customersId(Set.of(99L))
-                .build();
+        BankAccount bankAccount8 = new SavingBankAccount();
+        bankAccount8.setId(8L);
+        bankAccount8.setType(AccountType.SAVING);
+        bankAccount8.setBalance(Money.of(new BigDecimal("200000.00")));
+        bankAccount8.setCustomersId(Set.of(8L));
 
-        // Act
-        try {
-            bankAccountService.depositAmountToAccount(transaction, bankAccountEmitter);
-        } catch (TransactionException exception) {
-            // Assert
-            String expectedMessage = "Debit transaction: debit failed - should have positive value\nTransaction id:10\nEuro amount:-100.0";
-            assertThat(exception.getMessage()).isEqualTo(expectedMessage);
-            verifyNoInteractions(transactionService, bankAccountValidator, bankAccountRepository);
-        }
-    }
-
-    @Test
-    void shouldWithdrawAmountToBankAccount_whenHasValidWithdrawTransaction() {
-        // Arrange
-        Transaction transaction = Transaction.builder()
-                .id(10L)
-                .type(WITHDRAW)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("100"))
-                .currency("EUR")
-                .status(UNPROCESSED)
-                .date(Instant.now())
-                .label("transaction test")
-                .build();
-        BankAccount bankAccountEmitter = CheckingBankAccount.builder()
-                .id(99L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("100")))
-                .customersId(Set.of(99L))
-                .build();
-
-        // Act
-        bankAccountService.withdrawAmountToAccount(transaction, bankAccountEmitter);
-
-        // Assert
-        assertThat(bankAccountEmitter.getBalance().getAmount()).isEqualTo(new BigDecimal("0.0"));
-        verifyNoInteractions(transactionService, bankAccountValidator, bankAccountRepository);
-    }
-
-    @Test
-    void shouldThrowTransactionException_whenWithdrawTransactionHasNegativeAmount() {
-        // Arrange
-        Transaction transaction = Transaction.builder()
-                .id(10L)
-                .type(WITHDRAW)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("-100"))
-                .currency("EUR")
-                .status(UNPROCESSED)
-                .date(Instant.now())
-                .label("transaction test")
-                .build();
-        BankAccount bankAccountEmitter = CheckingBankAccount.builder()
-                .id(99L)
-                .type(CHECKING)
-                .balance(Money.of(new BigDecimal("100")))
-                .customersId(Set.of(99L))
-                .build();
-
-        // Act
-        try {
-            bankAccountService.withdrawAmountToAccount(transaction, bankAccountEmitter);
-        } catch (TransactionException exception) {
-            // Assert
-            String expectedMessage = "Withdraw transaction: withdraw failed - should have positive value\nTransaction id:10\nEuro amount:-100.0";
-            assertThat(exception.getMessage()).isEqualTo(expectedMessage);
-            verifyNoInteractions(transactionService, bankAccountValidator, bankAccountRepository);
-        }
+        List<BankAccount> bankAccounts = List.of(bankAccount1, bankAccount2, bankAccount3, bankAccount4, bankAccount5, bankAccount6, bankAccount7, bankAccount8);
+        return bankAccounts;
     }
 }
