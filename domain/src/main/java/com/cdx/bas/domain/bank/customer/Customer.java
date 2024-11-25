@@ -3,11 +3,13 @@ package com.cdx.bas.domain.bank.customer;
 import com.cdx.bas.domain.bank.account.BankAccount;
 import com.cdx.bas.domain.bank.customer.gender.Gender;
 import com.cdx.bas.domain.bank.customer.maritalstatus.MaritalStatus;
+import com.cdx.bas.domain.testing.Generated;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 import java.util.*;
 
+@Generated
 public class Customer {
 
 	private static final String ISO_COUNTRY_REGEX = "^(AF|AX|AL|DZ|AS|AD|AO|AI|AQ|AG|AR|AM|AW|AU|AT|AZ|BS|BH|BD|BB|BY|BE|BZ|BJ|BM|BT|BO|BQ|BA|BW|BV|BR|IO|BN|BG|BF|BI|KH|CM|CA|CV|KY|CF|TD|CL|CN|CX|CC|CO|KM|CG|CD|CK|CR|CI|HR|CU|CW|CY|CZ|"

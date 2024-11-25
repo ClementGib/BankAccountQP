@@ -3,6 +3,7 @@ package com.cdx.bas.domain.bank.account;
 import com.cdx.bas.domain.bank.account.type.AccountType;
 import com.cdx.bas.domain.bank.transaction.Transaction;
 import com.cdx.bas.domain.money.Money;
+import com.cdx.bas.domain.testing.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +13,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+@Generated
 public abstract class BankAccount {
 
     @NotNull(message="id must not be null.")

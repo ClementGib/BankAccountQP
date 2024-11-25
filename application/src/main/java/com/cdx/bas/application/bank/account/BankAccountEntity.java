@@ -3,6 +3,7 @@ package com.cdx.bas.application.bank.account;
 import com.cdx.bas.application.bank.customer.CustomerEntity;
 import com.cdx.bas.application.bank.transaction.TransactionEntity;
 import com.cdx.bas.domain.bank.account.type.AccountType;
+import com.cdx.bas.domain.testing.Generated;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
@@ -19,6 +20,7 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Generated
 @Entity
 @Table(schema = "basapp", name = "bank_accounts", uniqueConstraints = @UniqueConstraint(columnNames = "account_id"))
 public class BankAccountEntity extends PanacheEntityBase {

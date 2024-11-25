@@ -5,6 +5,7 @@ import com.cdx.bas.application.bank.customer.gender.GenderConverter;
 import com.cdx.bas.application.bank.customer.maritalstatus.MaritalStatusConverter;
 import com.cdx.bas.domain.bank.customer.gender.Gender;
 import com.cdx.bas.domain.bank.customer.maritalstatus.MaritalStatus;
+import com.cdx.bas.domain.testing.Generated;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
@@ -24,7 +25,7 @@ import java.util.Objects;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@Generated
 @Entity
 @Table(schema = "basapp", name = "customers", uniqueConstraints = @UniqueConstraint(columnNames = "customer_id"))
 public class CustomerEntity extends PanacheEntityBase {

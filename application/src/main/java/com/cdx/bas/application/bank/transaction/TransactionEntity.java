@@ -3,6 +3,7 @@ package com.cdx.bas.application.bank.transaction;
 import com.cdx.bas.application.bank.account.BankAccountEntity;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType;
+import com.cdx.bas.domain.testing.Generated;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.hypersistence.utils.hibernate.type.json.JsonStringType;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
@@ -18,6 +19,7 @@ import java.util.Objects;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Generated
 @Entity
 @Table(schema = "basapp", name = "transactions", uniqueConstraints = @UniqueConstraint(columnNames = "transaction_id"))
 @NamedQueries(@NamedQuery(

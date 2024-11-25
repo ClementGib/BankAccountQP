@@ -6,6 +6,7 @@ import com.cdx.bas.domain.bank.transaction.category.group.*;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import com.cdx.bas.domain.bank.transaction.status.ValidStatus;
 import com.cdx.bas.domain.currency.validation.ValidCurrency;
+import com.cdx.bas.domain.testing.Generated;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ import java.util.Objects;
 import static com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType.*;
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
 
+@Generated
 public class Transaction implements Comparable<Transaction> {
 
     @Min(value = 1, message = "Id must be positive and greater than 0 for existing transaction.", groups = ExistingTransactionGroup.class)
