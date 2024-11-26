@@ -12,9 +12,9 @@ class GenderConverterTest {
 
     @Test
     void convertToDatabaseColumn_shouldConvertToGenderCode() {
-        assertThat(genderConverter.convertToDatabaseColumn(MALE)).isEqualTo(strMale);
-        assertThat(genderConverter.convertToDatabaseColumn(FEMALE)).isEqualTo(strFemale);
-        assertThat(genderConverter.convertToDatabaseColumn(OTHER)).isEqualTo(strOther);
+        assertThat(genderConverter.convertToDatabaseColumn(MALE)).isEqualTo(STR_MALE);
+        assertThat(genderConverter.convertToDatabaseColumn(FEMALE)).isEqualTo(STR_FEMALE);
+        assertThat(genderConverter.convertToDatabaseColumn(OTHER)).isEqualTo(STR_OTHER);
     }
 
     @Test
@@ -24,9 +24,9 @@ class GenderConverterTest {
 
     @Test
     void convertToEntityAttribute_shouldConvertToGender() {
-        assertThat(genderConverter.convertToEntityAttribute(strMale)).isEqualTo(MALE);
-        assertThat(genderConverter.convertToEntityAttribute(strFemale)).isEqualTo(FEMALE);
-        assertThat(genderConverter.convertToEntityAttribute(strOther)).isEqualTo(OTHER);
+        assertThat(genderConverter.convertToEntityAttribute(STR_MALE)).isEqualTo(MALE);
+        assertThat(genderConverter.convertToEntityAttribute(STR_FEMALE)).isEqualTo(FEMALE);
+        assertThat(genderConverter.convertToEntityAttribute(STR_OTHER)).isEqualTo(OTHER);
     }
 
     @Test

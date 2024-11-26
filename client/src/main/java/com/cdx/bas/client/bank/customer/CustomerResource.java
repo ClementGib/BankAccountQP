@@ -2,18 +2,15 @@ package com.cdx.bas.client.bank.customer;
 
 
 import com.cdx.bas.domain.bank.customer.Customer;
-import com.cdx.bas.domain.bank.customer.CustomerPersistencePort;
 import com.cdx.bas.domain.bank.customer.CustomerServicePort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-import java.util.Optional;
 import java.util.Set;
 
 @Path("/customers")

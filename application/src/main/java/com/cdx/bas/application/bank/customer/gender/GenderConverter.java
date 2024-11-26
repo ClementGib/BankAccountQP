@@ -18,9 +18,9 @@ public class GenderConverter implements AttributeConverter<Gender, Character> {
         }
 
         return switch (gender) {
-            case MALE -> strMale;
-            case FEMALE -> strFemale;
-            case OTHER -> strOther;
+            case MALE -> STR_MALE;
+            case FEMALE -> STR_FEMALE;
+            case OTHER -> STR_OTHER;
         };
     }
 
@@ -31,9 +31,9 @@ public class GenderConverter implements AttributeConverter<Gender, Character> {
         }
 
         return switch (genderCode) {
-            case strMale -> MALE;
-            case strFemale -> FEMALE;
-            case strOther -> OTHER;
+            case STR_MALE -> MALE;
+            case STR_FEMALE -> FEMALE;
+            case STR_OTHER -> OTHER;
             default -> throw new IllegalStateException(ERROR_GENDER + genderCode);
         };
     }

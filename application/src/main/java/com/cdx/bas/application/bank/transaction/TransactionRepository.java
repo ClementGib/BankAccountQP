@@ -11,7 +11,6 @@ import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
 import java.util.*;
@@ -49,6 +48,28 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
     }
 
     @Override
+    public Set<Transaction> findTransactionsByEmitterBankAccount(long emitterBankAccountId) {
+        List<TransactionEntity> transactionEntities = entityManager
+                .createQuery("SELECT t FROM TransactionEntity t WHERE t.emitterBankAccountEntity.id = :id", TransactionEntity.class)
+                .setParameter("id", emitterBankAccountId)
+                .getResultList();
+        return transactionEntities.stream()
+                .map(transactionMapper::toDto)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Transaction> findTransactionsByReceiverBankAccount(long receiverBankAccountId) {
+        List<TransactionEntity> transactionEntities = entityManager
+                .createQuery("SELECT t FROM TransactionEntity t WHERE t.receiverBankAccountEntity.id = :id", TransactionEntity.class)
+                .setParameter("id", receiverBankAccountId)
+                .getResultList();
+        return transactionEntities.stream()
+                .map(transactionMapper::toDto)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public Set<Transaction> getAll() {
         return findAll(Sort.by(STATUS)).stream()
                 .map(transactionEntity -> transactionMapper.toDto(transactionEntity))
@@ -57,7 +78,6 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
 
 
     @Override
-    @Transactional
     public Set<Transaction> findAllByStatus(TransactionStatus transactionStatus) {
         return findAll(Sort.by(STATUS)).stream()
                 .filter(transaction -> transaction.getStatus().equals(transactionStatus))
@@ -78,15 +98,18 @@ public class TransactionRepository implements TransactionPersistencePort, Panach
     public void create(Transaction transaction) {
         entityManager.persist(transactionMapper.toEntity(transaction));
         logger.debug(MessageFormatter.format(TRANSACTION_CONTEXT, CREATION_ACTION, SUCCESS_STATUS, List.of(TRANSACTION_ID_DETAIL + transaction.getId())));
-
     }
 
     @Override
     public Transaction update(Transaction transaction) {
-        Transaction updatedTransaction = transactionMapper.toDto(entityManager.merge(transactionMapper.toEntity(transaction)));
+        TransactionEntity entity = transactionMapper.toEntity(transaction);
+        TransactionEntity merge = entityManager.merge(entity);
+        Transaction updatedTransaction = transactionMapper.toDto(merge);
         logger.debug(MessageFormatter.format(TRANSACTION_CONTEXT, UPDATE_ACTION, SUCCESS_STATUS, List.of(TRANSACTION_ID_DETAIL + transaction.getId())));
         return updatedTransaction;
     }
+
+
 
     @Override
     public Optional<Transaction> deleteById(long id) {

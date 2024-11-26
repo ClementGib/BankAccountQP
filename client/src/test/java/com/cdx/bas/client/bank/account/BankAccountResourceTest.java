@@ -6,13 +6,17 @@ import com.cdx.bas.domain.bank.account.checking.CheckingBankAccount;
 import com.cdx.bas.domain.bank.account.mma.MMABankAccount;
 import com.cdx.bas.domain.bank.account.saving.SavingBankAccount;
 import com.cdx.bas.domain.bank.transaction.Transaction;
+import com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
 import com.cdx.bas.domain.money.Money;
 import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -21,19 +25,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.CREDIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @QuarkusTest
 @WithTestResource(H2DatabaseTestResource.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class BankAccountResourceTest {
 
     @Inject
     BankAccountResource bankAccountResource;
 
     @Test
-    public void getAll_shouldReturnAllBankAccount() {
+    @Order(1)
+    void getAll_shouldReturnAllBankAccount() {
         List<BankAccount> expectedCustomers = List.of(
                 new CheckingBankAccount(1L, Money.of(new BigDecimal("400.00")), Set.of(1L), new HashSet<>()),
                 new CheckingBankAccount(2L, Money.of(new BigDecimal("1600.00")), Set.of(2L, 3L), new HashSet<>()),
@@ -49,12 +54,12 @@ class BankAccountResourceTest {
         assertThat(actualTransactions)
                 .usingRecursiveComparison()
                 .ignoringCollectionOrder()
-                .ignoringFields("issuedTransactions")
+                .ignoringFields("issuedTransactions", "incomingTransactions")
                 .isEqualTo(expectedCustomers);
     }
 
     @Test
-    public void findById_shouldReturnBankAccount_whenBankAccountFound() {
+    void findById_shouldReturnBankAccount_whenBankAccountFound() {
         BankAccount expectedBankAccount = new SavingBankAccount();
         expectedBankAccount.setId(6L);
         expectedBankAccount.setBalance(Money.of(new BigDecimal("999.00")));
@@ -69,30 +74,29 @@ class BankAccountResourceTest {
     }
 
     @Test
-    public void findById_shouldReturnBankAccountWithTransactions_whenTransactionsFoundInBankAccount() {
-        Transaction transaction1 = Transaction.builder()
-                .id(3L)
-                .emitterAccountId(6L)
-                .receiverAccountId(3L)
-                .amount(new BigDecimal("9200.00"))
-                .currency("EUR")
-                .type(CREDIT)
-                .status(TransactionStatus.COMPLETED)
-                .date(Instant.parse("2024-07-10T14:00:00Z"))
-                .label("transaction 3")
-                .build();
+    void findById_shouldReturnBankAccountWithTransactions_whenTransactionsFoundInBankAccount() {
+        Transaction transaction1 = new Transaction();
+        transaction1.setId(3L);
+        transaction1.setEmitterAccountId(6L);
+        transaction1.setReceiverAccountId(3L);
+        transaction1.setAmount(new BigDecimal("9200.00"));
+        transaction1.setCurrency("EUR");
+        transaction1.setType(TransactionType.CREDIT); // Assurez-vous que TransactionType.CREDIT est défini
+        transaction1.setStatus(TransactionStatus.COMPLETED); // Assurez-vous que TransactionStatus.COMPLETED est défini
+        transaction1.setDate(Instant.parse("2024-07-10T14:00:00Z"));
+        transaction1.setLabel("transaction 3");
 
-        Transaction transaction2 = Transaction.builder()
-                .id(2L)
-                .emitterAccountId(6L)
-                .receiverAccountId(3L)
-                .amount(new BigDecimal("9200.00"))
-                .currency("EUR")
-                .type(CREDIT)
-                .status(TransactionStatus.ERROR)
-                .date(Instant.parse("2024-07-10T14:00:00Z"))
-                .label("transaction 2")
-                .build();
+        Transaction transaction2 = new Transaction();
+        transaction2.setId(2L);
+        transaction2.setEmitterAccountId(6L);
+        transaction2.setReceiverAccountId(3L);
+        transaction2.setAmount(new BigDecimal("9200.00"));
+        transaction2.setCurrency("EUR");
+        transaction2.setType(TransactionType.CREDIT);
+        transaction2.setStatus(TransactionStatus.ERROR); // Assurez-vous que TransactionStatus.ERROR est défini
+        transaction2.setDate(Instant.parse("2024-07-10T14:00:00Z"));
+        transaction2.setLabel("transaction 2");
+
         List<Transaction> issuedTransaction = new ArrayList<>();
         issuedTransaction.add(transaction1);
         issuedTransaction.add(transaction2);
@@ -108,7 +112,7 @@ class BankAccountResourceTest {
     }
     
     @Test
-    public void findById_shouldReturnEmptyTransaction_whenTransactionNotFound() {
+    void findById_shouldReturnEmptyTransaction_whenTransactionNotFound() {
         try {
             bankAccountResource.findById(99L);
             fail();

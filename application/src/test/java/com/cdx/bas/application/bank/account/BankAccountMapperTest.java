@@ -1,25 +1,26 @@
 package com.cdx.bas.application.bank.account;
 
 import com.cdx.bas.application.bank.customer.CustomerEntity;
+import com.cdx.bas.application.bank.customer.CustomerMapper;
 import com.cdx.bas.application.bank.customer.CustomerRepository;
 import com.cdx.bas.application.bank.transaction.TransactionEntity;
-import com.cdx.bas.application.mapper.DtoEntityMapper;
+import com.cdx.bas.application.bank.transaction.TransactionMapper;
 import com.cdx.bas.domain.bank.account.BankAccount;
 import com.cdx.bas.domain.bank.account.checking.CheckingBankAccount;
+import com.cdx.bas.domain.bank.account.saving.SavingBankAccount;
 import com.cdx.bas.domain.bank.account.type.AccountType;
 import com.cdx.bas.domain.bank.customer.Customer;
 import com.cdx.bas.domain.bank.customer.gender.Gender;
 import com.cdx.bas.domain.bank.customer.maritalstatus.MaritalStatus;
 import com.cdx.bas.domain.bank.transaction.Transaction;
+import com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
-import com.cdx.bas.domain.bank.transaction.type.TransactionType;
 import com.cdx.bas.domain.money.Money;
-import io.quarkus.test.InjectMock;
-import io.quarkus.test.common.WithTestResource;
-import io.quarkus.test.h2.H2DatabaseTestResource;
-import io.quarkus.test.junit.QuarkusTest;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -27,31 +28,30 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
 
+import static com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType.CREDIT;
 import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.ERROR;
-import static com.cdx.bas.domain.bank.transaction.type.TransactionType.CREDIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-@QuarkusTest
-@WithTestResource(H2DatabaseTestResource.class)
-public class BankAccountMapperTest {
+@ExtendWith(MockitoExtension.class)
+class BankAccountMapperTest {
 
-    @Inject
+    @Mock
+    CustomerMapper customerMapper;
+
+    @Mock
+    TransactionMapper transactionMapper;
+
+    @Mock
+    CustomerRepository customerRepository;
+
+    @InjectMocks
     BankAccountMapper bankAccountMapper;
 
-    @InjectMock
-    DtoEntityMapper<Customer, CustomerEntity> customerMapper;
-
-    @InjectMock
-    DtoEntityMapper<Transaction, TransactionEntity> transactionMapper;
-
-    @InjectMock
-    CustomerRepository customerRepository;
-    
     @Test
-    public void toDto_shouldReturnNullDto_whenEntityIsNull() {
+    void toDto_shouldReturnNullDto_whenEntityIsNull() {
         BankAccount dto = bankAccountMapper.toDto(null);
 
         assertThat(dto).isNull();
@@ -60,7 +60,7 @@ public class BankAccountMapperTest {
     }
 
     @Test
-    public void toEntity_shouldReturnNullEntity_whenDtoIsNull() {
+    void toEntity_shouldReturnNullEntity_whenDtoIsNull() {
         // Act
         BankAccountEntity entity = bankAccountMapper.toEntity(null);
 
@@ -70,7 +70,7 @@ public class BankAccountMapperTest {
     }
 
     @Test
-    public void toDto_shouldReturnNullDto_whenEntityHasEmptyObject() {
+    void toDto_shouldReturnNullDto_whenEntityHasEmptyObject() {
         // Act
         BankAccount dto = bankAccountMapper.toDto(new BankAccountEntity());
 
@@ -80,7 +80,7 @@ public class BankAccountMapperTest {
     }
 
     @Test
-    public void toDto_shouldMapAccountTypeOnly_whenEntityHasAccount_withOnlyAccountType() {
+    void toDto_shouldMapAccountTypeOnly_whenEntityHasAccount_withOnlyAccountType() {
         // Arrange
         BankAccountEntity entity = new BankAccountEntity();
         entity.setType(AccountType.CHECKING);
@@ -98,7 +98,7 @@ public class BankAccountMapperTest {
     }
 
     @Test
-        public void toEntity_shouldMapNullValues_whenDtoHasAccount_withOnlyAccountTypeAndId() {
+    void toEntity_shouldMapNullValues_whenDtoHasAccount_withOnlyAccountTypeAndId() {
         // Arrange
         BankAccount bankAccount = new CheckingBankAccount();
         bankAccount.setId(1L);
@@ -116,69 +116,91 @@ public class BankAccountMapperTest {
     }
 
     @Test
-    public void toDto_shouldMapEveryFieldsOfDto_whenEntityHasValues() {
+    void toDto_shouldMapEveryFieldsOfDto_whenEntityHasValues() {
         // Arrange
         Instant timestamp = Instant.now();
         BankAccountEntity entity = new BankAccountEntity();
         entity.setId(10L);
-        entity.setType(AccountType.CHECKING);
+        entity.setType(AccountType.SAVING);
         entity.setBalance(new BigDecimal("1000"));
+
         Set<CustomerEntity> customers = new HashSet<>();
         CustomerEntity customerEntity = createCustomerEntityUtils();
         customers.add(customerEntity);
         entity.setCustomers(customers);
-        Set<TransactionEntity> transactionEntities = new HashSet<>();
-        TransactionEntity transactionEntity1 = createTransactionEntity(2000L, timestamp);
-        transactionEntities.add(transactionEntity1);
-        TransactionEntity transactionEntity2 = createTransactionEntity(5000L, timestamp);
-        transactionEntities.add(transactionEntity2);
-        entity.setIssuedTransactions(transactionEntities);
 
-        Transaction transaction1 = Transaction.builder()
-                .id(2L)
-                .type(CREDIT)
-                .emitterAccountId(2000L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("100"))
-                .currency("EUR")
-                .status(ERROR)
-                .date(timestamp)
-                .label("transaction test")
-                .build();
-        Transaction transaction2 = Transaction.builder()
-                .id(2L)
-                .type(CREDIT)
-                .emitterAccountId(5000L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("100"))
-                .currency("EUR")
-                .status(ERROR)
-                .date(timestamp)
-                .label("transaction test")
-                .build();
-        when(transactionMapper.toDto(transactionEntity1)).thenReturn(transaction1);
-        when(transactionMapper.toDto(transactionEntity2)).thenReturn(transaction2);
+        Set<TransactionEntity> issuedTransactionEntities = new HashSet<>();
+        TransactionEntity issuedTransactionEntity1 = getTransactionEntity(1L, timestamp);
+        TransactionEntity issuedTransactionEntity2 = getTransactionEntity(2L, timestamp);
+        issuedTransactionEntities.add(issuedTransactionEntity1);
+        issuedTransactionEntities.add(issuedTransactionEntity2);
+        entity.setIssuedTransactions(issuedTransactionEntities);
+
+        Set<TransactionEntity> incomingTransactionEntities = new HashSet<>();
+        TransactionEntity incomingTransactionEntity = getTransactionEntity(3L, timestamp);
+        incomingTransactionEntities.add(incomingTransactionEntity);
+        entity.setIncomingTransactions(incomingTransactionEntities);
+
+        Transaction issuedTransaction1 = getTransaction(1L, 10L, 15L, timestamp);
+        Transaction issuedTransaction2 = getTransaction(2L, 10L, 20L, timestamp);
+        Transaction incomingTransaction = getTransaction(3L, 30L, 10L, timestamp);
+
+        when(transactionMapper.toDto(issuedTransactionEntity1)).thenReturn(issuedTransaction1);
+        when(transactionMapper.toDto(issuedTransactionEntity2)).thenReturn(issuedTransaction2);
+        when(transactionMapper.toDto(incomingTransactionEntity)).thenReturn(incomingTransaction);
+
+        BankAccount expectedBankAccount = new SavingBankAccount();
+        expectedBankAccount.setId(10L);
+        expectedBankAccount.setType(AccountType.SAVING);
+        expectedBankAccount.setBalance(new Money(new BigDecimal("1000")));
+        expectedBankAccount.setCustomersId(Set.of(99L));
+        expectedBankAccount.setIssuedTransactions(Set.of(issuedTransaction1, issuedTransaction2));
+        expectedBankAccount.setIncomingTransactions(Set.of(incomingTransaction));
 
         // Act
         BankAccount dto = bankAccountMapper.toDto(entity);
 
         // Assert
-        assertThat(dto.getId()).isEqualTo(10L);
-        assertThat(dto.getType()).isEqualTo(AccountType.CHECKING);
-        assertThat(dto.getBalance()).usingRecursiveComparison().isEqualTo(new Money(new BigDecimal("1000")));
-        assertThat(dto.getCustomersId()).hasSize(1);
-        assertThat(dto.getCustomersId().iterator().next()).isEqualTo(99L);
-        assertThat(dto.getIssuedTransactions()).hasSize(2);
-        assertThat(dto.getIssuedTransactions()).contains(transaction1);
-        assertThat(dto.getIssuedTransactions()).contains(transaction2);
+        assertThat(dto)
+                .usingRecursiveComparison()
+                .isEqualTo(expectedBankAccount);
 
-        verify(transactionMapper).toDto(transactionEntity1);
-        verify(transactionMapper).toDto(transactionEntity2);
+        verify(transactionMapper).toDto(issuedTransactionEntity1);
+        verify(transactionMapper).toDto(issuedTransactionEntity2);
+        verify(transactionMapper).toDto(incomingTransactionEntity);
         verifyNoMoreInteractions(customerMapper, transactionMapper);
     }
 
+    private static TransactionEntity getTransactionEntity(long id, Instant timestamp) {
+        TransactionEntity issuedTransactionEntity2 = new TransactionEntity();
+        issuedTransactionEntity2.setId(id);
+        issuedTransactionEntity2.setEmitterBankAccountEntity(null);
+        issuedTransactionEntity2.setReceiverBankAccountEntity(null);
+        issuedTransactionEntity2.setAmount(new BigDecimal("100"));
+        issuedTransactionEntity2.setType(TransactionType.CREDIT);
+        issuedTransactionEntity2.setStatus(TransactionStatus.ERROR);
+        issuedTransactionEntity2.setDate(timestamp);
+        issuedTransactionEntity2.setLabel("transaction test");
+        return issuedTransactionEntity2;
+    }
+
+    private static Transaction getTransaction(long id, long emitterAccountId, long receiverAccountId, Instant timestamp) {
+        Transaction incomingTransaction = new Transaction();
+        incomingTransaction.setId(id);
+        incomingTransaction.setType(CREDIT);
+        incomingTransaction.setEmitterAccountId(emitterAccountId);
+        incomingTransaction.setReceiverAccountId(receiverAccountId);
+        incomingTransaction.setAmount(new BigDecimal("100"));
+        incomingTransaction.setCurrency("EUR");
+        incomingTransaction.setStatus(ERROR);
+        incomingTransaction.setDate(timestamp);
+        incomingTransaction.setLabel("transaction test");
+        return incomingTransaction;
+    }
+
+
     @Test
-    public void toEntity_shouldThrowNoSuchElementException_whenCustomerIsNotFound() {
+    void toEntity_shouldThrowNoSuchElementException_whenCustomerIsNotFound() {
         // Arrange
         Instant timestamp = Instant.now();
         BankAccount dto = new CheckingBankAccount();
@@ -190,33 +212,30 @@ public class BankAccountMapperTest {
         customers.add(customer.getId());
         dto.setCustomersId(customers);
         Set<Transaction> transactions = new HashSet<>();
-        Transaction transaction1 = Transaction.builder()
-                .id(2L)
-                .emitterAccountId(2000L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal(100))
-                .type(TransactionType.CREDIT)
-                .status(TransactionStatus.ERROR)
-                .date(timestamp)
-                .label("transaction test")
-                .metadata(Map.of("amount_before", "0", "amount_after", "350"))
-                .build();
+        Transaction transaction1 = new Transaction();
+        transaction1.setId(2L);
+        transaction1.setEmitterAccountId(2000L);
+        transaction1.setReceiverAccountId(77L);
+        transaction1.setAmount(new BigDecimal(100));
+        transaction1.setType(TransactionType.CREDIT);
+        transaction1.setStatus(TransactionStatus.ERROR);
+        transaction1.setDate(timestamp);
+        transaction1.setLabel("transaction test");
+        transaction1.setMetadata(Map.of("amount_before", "0", "amount_after", "350"));
         transactions.add(transaction1);
-        Transaction transaction2 = Transaction.builder()
-                .id(2L)
-                .emitterAccountId(5000L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal(100))
-                .type(TransactionType.CREDIT)
-                .status(TransactionStatus.ERROR)
-                .date(timestamp)
-                .label("transaction test")
-                .metadata(Map.of("amount_before", "0", "amount_after", "350"))
-                .build();
+
+        Transaction transaction2 = new Transaction();
+        transaction2.setId(2L);
+        transaction2.setEmitterAccountId(5000L);
+        transaction2.setReceiverAccountId(77L);
+        transaction2.setAmount(new BigDecimal(100));
+        transaction2.setType(TransactionType.CREDIT);
+        transaction2.setStatus(TransactionStatus.ERROR);
+        transaction2.setDate(timestamp);
+        transaction2.setLabel("transaction test");
+        transaction2.setMetadata(Map.of("amount_before", "0", "amount_after", "350"));
         transactions.add(transaction2);
         dto.setIssuedTransactions(transactions);
-
-        when(customerRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         try {
             // Act
@@ -233,7 +252,7 @@ public class BankAccountMapperTest {
     }
 
     @Test
-    public void toEntity_shouldMapEveryFieldsOfEntity_whenDtoHasValues() {
+    void toEntity_shouldMapEveryFieldsOfEntity_whenDtoHasValues() {
         // Arrange
         Instant timestamp = Instant.now();
         BankAccount dto = new CheckingBankAccount();
@@ -245,38 +264,36 @@ public class BankAccountMapperTest {
         customers.add(customer.getId());
         dto.setCustomersId(customers);
         Set<Transaction> transactions = new HashSet<>();
-        Transaction transaction1 = Transaction.builder()
-                .id(2L)
-                .emitterAccountId(2000L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal(100))
-                .type(TransactionType.CREDIT)
-                .status(TransactionStatus.ERROR)
-                .date(timestamp)
-                .label("transaction test")
-                .metadata(Map.of("amount_before", "0", "amount_after", "350"))
-                .build();
+        Transaction transaction1 = new Transaction();
+        transaction1.setId(1L);
+        transaction1.setEmitterAccountId(2000L);
+        transaction1.setReceiverAccountId(77L);
+        transaction1.setAmount(new BigDecimal(100));
+        transaction1.setType(TransactionType.CREDIT);
+        transaction1.setStatus(TransactionStatus.ERROR);
+        transaction1.setDate(timestamp);
+        transaction1.setLabel("transaction test");
+        transaction1.setMetadata(Map.of("amount_before", "0", "amount_after", "350"));
         transactions.add(transaction1);
-        Transaction transaction2 = Transaction.builder()
-                .id(2L)
-                .emitterAccountId(5000L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal(100))
-                .type(TransactionType.CREDIT)
-                .status(TransactionStatus.ERROR)
-                .date(timestamp)
-                .label("transaction test")
-                .metadata(Map.of("amount_before", "0", "amount_after", "350"))
-                .build();
+
+        Transaction transaction2 = new Transaction();
+        transaction2.setId(2L);
+        transaction2.setEmitterAccountId(5000L);
+        transaction2.setReceiverAccountId(77L);
+        transaction2.setAmount(new BigDecimal(100));
+        transaction2.setType(TransactionType.CREDIT);
+        transaction2.setStatus(TransactionStatus.ERROR);
+        transaction2.setDate(timestamp);
+        transaction2.setLabel("transaction test");
+        transaction2.setMetadata(Map.of("amount_before", "0", "amount_after", "350"));
         transactions.add(transaction2);
         dto.setIssuedTransactions(transactions);
 
         CustomerEntity customerEntity = createCustomerEntityUtils();
         when(customerRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(customerEntity));
-        when(customerMapper.toEntity(customer)).thenReturn(customerEntity);
-        TransactionEntity transactionEntity1 = createTransactionEntity(2000L, timestamp);
+        TransactionEntity transactionEntity1 = getTransactionEntity(1L, timestamp);
         when(transactionMapper.toEntity(transaction1)).thenReturn(transactionEntity1);
-        TransactionEntity transactionEntity2 = createTransactionEntity(5000L, timestamp);
+        TransactionEntity transactionEntity2 = getTransactionEntity(2L, timestamp);
         when(transactionMapper.toEntity(transaction2)).thenReturn(transactionEntity2);
 
         // Act
@@ -330,16 +347,4 @@ public class BankAccountMapperTest {
         return customerEntity;
     }
 
-    private TransactionEntity createTransactionEntity(long id, Instant instantDate) {
-        TransactionEntity transactionEntity = new TransactionEntity();
-        transactionEntity.setId(id);
-        transactionEntity.setEmitterBankAccountEntity(null);
-        transactionEntity.setReceiverBankAccountEntity(null);
-        transactionEntity.setAmount(new BigDecimal("100"));
-        transactionEntity.setType(TransactionType.CREDIT);
-        transactionEntity.setStatus(TransactionStatus.ERROR);
-        transactionEntity.setDate(instantDate);
-        transactionEntity.setLabel("transaction test");
-        return transactionEntity;
-    }
 }

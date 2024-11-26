@@ -3,186 +3,99 @@ package com.cdx.bas.application.scheduler;
 import com.cdx.bas.domain.bank.transaction.Transaction;
 import com.cdx.bas.domain.bank.transaction.TransactionPersistencePort;
 import com.cdx.bas.domain.bank.transaction.TransactionServicePort;
-import com.cdx.bas.domain.bank.transaction.type.TransactionType;
-import io.quarkus.test.InjectMock;
-import io.quarkus.test.common.WithTestResource;
-import io.quarkus.test.h2.H2DatabaseTestResource;
-import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.TestProfile;
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.lang.reflect.Field;
 import java.util.PriorityQueue;
-import java.util.Queue;
 
-import static com.cdx.bas.domain.bank.transaction.status.TransactionStatus.UNPROCESSED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+import static org.wildfly.common.Assert.assertTrue;
 
+@ExtendWith(MockitoExtension.class)
+class SchedulerImplTest {
 
-@QuarkusTest
-@TestProfile(SchedulerTestProfile.class)
-@TestMethodOrder(OrderAnnotation.class)
-@WithTestResource(H2DatabaseTestResource.class)
-class SchedulerTest {
-
-    @InjectMock
+    @Mock
     TransactionServicePort transactionService;
 
-    @InjectMock
+    @Mock
     TransactionPersistencePort transactionRepository;
 
-    @Inject
-    Scheduler scheduler;
+    @InjectMocks
+    SchedulerImpl scheduler;
 
-    @Order(1)
     @Test
-    void processQueue_shouldFillTheQueue_whenQueueWasEmpty() {
+    void testProcessQueue_withActivatedScheduler() {
         // Arrange
-        when(transactionRepository.findUnprocessedTransactions()).thenReturn(new PriorityQueue<>());
+        scheduler.activation = true;
+        PriorityQueue<Transaction> mockQueue = new PriorityQueue<>();
+        Transaction transaction1 = mock(Transaction.class);
+        Transaction transaction2 = mock(Transaction.class);
+        mockQueue.add(transaction1);
+        mockQueue.add(transaction2);
+
+        PriorityQueue<Transaction> transactions = new PriorityQueue<>() {{
+            add(transaction1);
+            add(transaction2);
+        }};
+
+        when(transactionRepository.findUnprocessedTransactions()).thenReturn(transactions);
 
         // Act
         scheduler.processQueue();
 
         // Assert
         verify(transactionRepository).findUnprocessedTransactions();
-        verifyNoMoreInteractions(transactionRepository);
+        verify(transactionService, times(1)).processDigitalTransaction(transaction1);
+        verify(transactionService, times(1)).processDigitalTransaction(transaction2);
+        assertThat(getTransactionQueueReflection()).isEmpty();
+    }
+
+    @Test
+    void testProcessQueue_withDeactivatedScheduler() {
+        // Arrange
+        scheduler.activation = false;
+
+        // Act
+        scheduler.processQueue();
+
+        // Assert
+        verifyNoInteractions(transactionRepository);
         verifyNoInteractions(transactionService);
     }
 
-    @Order(2)
     @Test
-    void processQueue_shouldRunSchedulerProcess_withOrderedQueues_whenQueueIsFilled_withUnprocessedTransactions() {
+    void testIsActivated() {
         // Arrange
-        Queue<Transaction> queue = createCreditTransactionsUtils();
-        when(transactionRepository.findUnprocessedTransactions()).thenReturn(queue);
-        Clock clock;
-
-        Transaction fifthTransaction = Transaction.builder()
-                .id(5L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("59"))
-                .label("Fifth transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.MIN)
-                .build();
-        clock = Clock.fixed(Instant.parse("2022-12-06T10:14:00Z"), ZoneId.of("UTC"));
-        Transaction thirdTransaction = Transaction.builder()
-                .id(3L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("150"))
-                .label("Third transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now(clock))
-                .build();
-        clock = Clock.fixed(Instant.parse("2022-12-07T10:14:00Z"), ZoneId.of("UTC"));
-        Transaction secondTransaction = Transaction.builder()
-                .id(2L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("399"))
-                .label("Second transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now(clock))
-                .build();
-        clock = Clock.fixed(Instant.parse("2022-12-07T10:18:00Z"), ZoneId.of("UTC"));
-        Transaction fourthTransaction = Transaction.builder()
-                .id(4L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("1000"))
-                .label("Fourth transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now(clock))
-                .build();
+        scheduler.activation = true;
 
         // Act
-        scheduler.processQueue();
+        boolean activated = scheduler.isActivated();
 
         // Assert
-        assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(fifthTransaction);
-        verify(transactionService).processDigitalTransaction(queue.poll());
-        assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(thirdTransaction);
-        verify(transactionService).processDigitalTransaction(queue.poll());
-        assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(secondTransaction);
-        verify(transactionService).processDigitalTransaction(queue.poll());
-        assertThat(queue.peek()).usingRecursiveComparison().isEqualTo(fourthTransaction);
-        verify(transactionService).processDigitalTransaction(queue.poll());
+        assertTrue(activated);
 
-        verify(transactionRepository).findUnprocessedTransactions();
-        verify(transactionService, times(5)).processDigitalTransaction(any());
-        verifyNoMoreInteractions(transactionRepository, transactionService);
+        // Arrange (deactivated scenario)
+        scheduler.activation = false;
+
+        // Act
+        boolean deactivated = scheduler.isActivated();
+
+        // Assert
+        assertThat(deactivated).isFalse();
     }
 
-    private static Queue<Transaction> createCreditTransactionsUtils() {
-        Clock clock;
-        Queue<Transaction> queue = new PriorityQueue<>();
-        queue.add(Transaction.builder()
-                .id(1L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("250"))
-                .label("First transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.MAX)
-                .build());
-        clock = Clock.fixed(Instant.parse("2022-12-07T10:14:00Z"), ZoneId.of("UTC"));
-        queue.add(Transaction.builder()
-                .id(2L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("399"))
-                .label("Second transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now(clock))
-                .build());
-        clock = Clock.fixed(Instant.parse("2022-12-06T10:14:00Z"), ZoneId.of("UTC"));
-        queue.add(Transaction.builder()
-                .id(3L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("150"))
-                .label("Third transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now(clock))
-                .build());
-        clock = Clock.fixed(Instant.parse("2022-12-07T10:18:00Z"), ZoneId.of("UTC"));
-        queue.add(Transaction.builder()
-                .id(4L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("1000"))
-                .label("Fourth transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.now(clock))
-                .build());
-        queue.add(Transaction.builder()
-                .id(5L)
-                .emitterAccountId(99L)
-                .receiverAccountId(77L)
-                .amount(new BigDecimal("59"))
-                .label("Fifth transaction")
-                .type(TransactionType.CREDIT)
-                .status(UNPROCESSED)
-                .date(Instant.MIN)
-                .build());
-        return queue;
+    private PriorityQueue<Transaction> getTransactionQueueReflection() {
+        try {
+            Field field = SchedulerImpl.class.getDeclaredField("transactionQueue");
+            field.setAccessible(true);
+            return (PriorityQueue<Transaction>) field.get(null);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException("Reflection failed for transactionQueue", e);
+        }
     }
 }

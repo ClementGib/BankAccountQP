@@ -31,23 +31,10 @@ public interface BankAccountServicePort {
     BankAccount putTransaction(Transaction transaction, BankAccount bankAccount);
 
     /**
-     * add transaction to bank account
-     *
-     * @param transaction to post with amount and currency
-     * @param emitterBankAccount which emits transaction
-     * @param receiverBankAccount which receives transaction
-     */
-    void creditAmountToAccounts(Transaction transaction, BankAccount emitterBankAccount, BankAccount receiverBankAccount) ;
-
-    /**
      * updated bank account
      *
      * @param bankAccount
      * @return bank account updated
      */
     BankAccount updateBankAccount(BankAccount bankAccount);
-
-    void depositAmountToAccount(Transaction transaction, BankAccount emitterBankAccount);
-
-    void withdrawAmountToAccount(Transaction transaction, BankAccount emitterBankAccount);
 }

@@ -1,14 +1,10 @@
 package com.cdx.bas.domain.bank.transaction;
 
-import jakarta.transaction.Transactional;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
+import com.cdx.bas.domain.bank.transaction.category.NewCashTransaction;
+import com.cdx.bas.domain.bank.transaction.category.NewDigitalTransaction;
 import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.math.BigDecimal;
 import java.util.Set;
 
 public interface TransactionControllerPort {

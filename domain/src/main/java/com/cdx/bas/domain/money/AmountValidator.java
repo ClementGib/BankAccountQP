@@ -20,10 +20,8 @@ public class AmountValidator implements ConstraintValidator<Amount, Money> {
 
     @Override
     public boolean isValid(Money money, ConstraintValidatorContext context) {
-        if (money != null && (money.getAmount().compareTo(min) >= 0 && money.getAmount().compareTo(max) <= 0)) {
-            return true;
-        }
-        return false;
+        return money != null
+                && (money.getAmount().compareTo(min) >= 0 && money.getAmount().compareTo(max) <= 0);
     }
 
 }

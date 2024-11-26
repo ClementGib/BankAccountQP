@@ -3,11 +3,13 @@ package com.cdx.bas.domain.bank.customer;
 import com.cdx.bas.domain.bank.account.BankAccount;
 import com.cdx.bas.domain.bank.customer.gender.Gender;
 import com.cdx.bas.domain.bank.customer.maritalstatus.MaritalStatus;
+import com.cdx.bas.domain.testing.Generated;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 import java.util.*;
 
+@Generated
 public class Customer {
 
 	private static final String ISO_COUNTRY_REGEX = "^(AF|AX|AL|DZ|AS|AD|AO|AI|AQ|AG|AR|AM|AW|AU|AT|AZ|BS|BH|BD|BB|BY|BE|BZ|BJ|BM|BT|BO|BQ|BA|BW|BV|BR|IO|BN|BG|BF|BI|KH|CM|CA|CV|KY|CF|TD|CL|CN|CX|CC|CO|KM|CG|CD|CK|CR|CI|HR|CU|CW|CY|CZ|"
@@ -62,15 +64,11 @@ public class Customer {
 	private List<BankAccount> accounts = new ArrayList<>();
 	
 	private Map<String, String> metadata = new HashMap<>();
-	
+
 	public Customer() {
-		super();
 	}
 
-	public Customer(Long id, String firstName, String lastName, Gender gender, MaritalStatus maritalStatus,
-	        LocalDate birthdate, String country, String address, String city, String email, String phoneNumber,
-	        List<BankAccount> accounts, Map<String, String> metadata) {
-		super();
+	public Customer(Long id, String firstName, String lastName, Gender gender, MaritalStatus maritalStatus, LocalDate birthdate, String country, String address, String city, String email, String phoneNumber, List<BankAccount> accounts, Map<String, String> metadata) {
 		this.id = id;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -86,102 +84,102 @@ public class Customer {
 		this.metadata = metadata;
 	}
 
-	public Long getId() {
+	public @NotNull(message = "id must not be null.") @Min(value = 1, message = "id must be positive and greater than 0.") Long getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(@NotNull(message = "id must not be null.") @Min(value = 1, message = "id must be positive and greater than 0.") Long id) {
 		this.id = id;
 	}
 
-	public String getFirstName() {
+	public @NotNull(message = "firstName must not be null.") @Size(min = 1, max = 750, message = "firstName must contain at least 1 character and must not have more than 750 characters.") String getFirstName() {
 		return firstName;
 	}
-	
-	public void setFirstName(String firstName) {
+
+	public void setFirstName(@NotNull(message = "firstName must not be null.") @Size(min = 1, max = 750, message = "firstName must contain at least 1 character and must not have more than 750 characters.") String firstName) {
 		this.firstName = firstName;
 	}
-	
-	public String getLastName() {
+
+	public @NotNull(message = "lastName must not be null.") @Size(min = 1, max = 750, message = "lastName must contain at least 1 character and must not have more than 750 characters.") String getLastName() {
 		return lastName;
 	}
-	
-	public void setLastName(String lastName) {
+
+	public void setLastName(@NotNull(message = "lastName must not be null.") @Size(min = 1, max = 750, message = "lastName must contain at least 1 character and must not have more than 750 characters.") String lastName) {
 		this.lastName = lastName;
 	}
-	
-	public Gender getGender() {
+
+	public @NotNull(message = "gender must not be null.") Gender getGender() {
 		return gender;
 	}
-	
-	public void setGender(Gender gender) {
+
+	public void setGender(@NotNull(message = "gender must not be null.") Gender gender) {
 		this.gender = gender;
 	}
-	
-	public MaritalStatus getMaritalStatus() {
+
+	public @NotNull(message = "maritalStatus must not be null.") MaritalStatus getMaritalStatus() {
 		return maritalStatus;
 	}
-	
-	public void setMaritalStatus(MaritalStatus maritalStatus) {
+
+	public void setMaritalStatus(@NotNull(message = "maritalStatus must not be null.") MaritalStatus maritalStatus) {
 		this.maritalStatus = maritalStatus;
 	}
 
-	public LocalDate getBirthdate() {
+	public @NotNull(message = "birthdate must not be null.") @Past(message = "birthdate must not be before the current date.") LocalDate getBirthdate() {
 		return birthdate;
 	}
 
-	public void setBirthdate(LocalDate birthdate) {
+	public void setBirthdate(@NotNull(message = "birthdate must not be null.") @Past(message = "birthdate must not be before the current date.") LocalDate birthdate) {
 		this.birthdate = birthdate;
 	}
 
-	public String getCountry() {
+	public @NotNull(message = "country must not be null.") @Pattern(regexp = ISO_COUNTRY_REGEX, message = "country must contain ISO 3166 country code.") String getCountry() {
 		return country;
 	}
-	
-	public void setCountry(String country) {
+
+	public void setCountry(@NotNull(message = "country must not be null.") @Pattern(regexp = ISO_COUNTRY_REGEX, message = "country must contain ISO 3166 country code.") String country) {
 		this.country = country;
 	}
-	
-	public String getAddress() {
+
+	public @NotNull(message = "address must not be null.") @Size(min = 1, message = "address must contain at least 1 character.") String getAddress() {
 		return address;
 	}
-	
-	public void setAddress(String address) {
+
+	public void setAddress(@NotNull(message = "address must not be null.") @Size(min = 1, message = "address must contain at least 1 character.") String address) {
 		this.address = address;
 	}
-	
-	public String getCity() {
+
+	public @NotNull(message = "city must not be null.") @Size(min = 1, message = "city must contain at least 1 character.") String getCity() {
 		return city;
 	}
-	
-	public void setCity(String city) {
+
+	public void setCity(@NotNull(message = "city must not be null.") @Size(min = 1, message = "city must contain at least 1 character.") String city) {
 		this.city = city;
 	}
-	
-	public String getEmail() {
+
+	public @NotNull(message = "email must not be null.") @Email(message = "email must respect the email format.") @Size(min = 1, message = "address must contain at least 1 character.") String getEmail() {
 		return email;
 	}
-	
-	public void setEmail(String email) {
+
+	public void setEmail(@NotNull(message = "email must not be null.") @Email(message = "email must respect the email format.") @Size(min = 1, message = "address must contain at least 1 character.") String email) {
 		this.email = email;
 	}
-	
-	public String getPhoneNumber() {
+
+	public @NotNull(message = "phoneNumber must not be null.") @Size(min = 5, max = 20, message = "phoneNumber must contain at least 5 digits and maximum 20 digits.") String getPhoneNumber() {
 		return phoneNumber;
 	}
-	
-	public void setPhoneNumber(String phoneNumber) {
+
+	public void setPhoneNumber(@NotNull(message = "phoneNumber must not be null.") @Size(min = 5, max = 20, message = "phoneNumber must contain at least 5 digits and maximum 20 digits.") String phoneNumber) {
 		this.phoneNumber = phoneNumber;
 	}
-	
+
 	public List<BankAccount> getAccounts() {
 		return accounts;
 	}
-	
-	public void setAccounts(List<BankAccount> accounts) {
+
+	public void setAccounts(@NotNull(message = "accounts must not be null.") List<BankAccount> accounts) {
 		this.accounts = accounts;
 	}
-	
+
 	public Map<String, String> getMetadata() {
 		return metadata;
 	}
@@ -191,28 +189,15 @@ public class Customer {
 	}
 
 	@Override
-	public int hashCode() {
-		return Objects.hash(id, firstName, lastName, gender, maritalStatus,
-				birthdate, country, address, city, email, phoneNumber, accounts, metadata);
-	}
-
-	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Customer customer = (Customer) o;
-		return Objects.equals(id, customer.id) &&
-				Objects.equals(firstName, customer.firstName) &&
-				Objects.equals(lastName, customer.lastName) &&
-				gender == customer.gender &&
-				maritalStatus == customer.maritalStatus &&
-				Objects.equals(birthdate, customer.birthdate) &&
-				Objects.equals(country, customer.country) &&
-				Objects.equals(address, customer.address) &&
-				Objects.equals(city, customer.city) &&
-				Objects.equals(email, customer.email) &&
-				Objects.equals(phoneNumber, customer.phoneNumber) &&
-				Objects.equals(accounts, customer.accounts) &&
-				Objects.equals(metadata, customer.metadata);
+		return Objects.equals(id, customer.id) && Objects.equals(firstName, customer.firstName) && Objects.equals(lastName, customer.lastName) && gender == customer.gender && maritalStatus == customer.maritalStatus && Objects.equals(birthdate, customer.birthdate) && Objects.equals(country, customer.country) && Objects.equals(address, customer.address) && Objects.equals(city, customer.city) && Objects.equals(email, customer.email) && Objects.equals(phoneNumber, customer.phoneNumber) && Objects.equals(accounts, customer.accounts) && Objects.equals(metadata, customer.metadata);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, firstName, lastName, gender, maritalStatus, birthdate, country, address, city, email, phoneNumber, accounts, metadata);
 	}
 }

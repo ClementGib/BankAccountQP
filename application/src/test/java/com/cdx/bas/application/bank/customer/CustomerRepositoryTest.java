@@ -23,12 +23,12 @@ import static com.cdx.bas.domain.bank.customer.gender.Gender.MALE;
 import static com.cdx.bas.domain.bank.customer.maritalstatus.MaritalStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @QuarkusTest
 @WithTestResource(H2DatabaseTestResource.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CustomerRepositoryTest {
 
-    public static final long ID_SEQUENCE_START = 10L;
+    public static final long ID_SEQUENCE_START = 20L;
     @Inject
     CustomerPersistencePort customerRepository;
 
@@ -88,8 +88,10 @@ class CustomerRepositoryTest {
         // Assert
         assertThat(createdCustomer).isEqualTo(newCustomer);
         Optional<Customer> customer = customerRepository.findById(ID_SEQUENCE_START);
-        Customer expectedCustomer = new Customer(ID_SEQUENCE_START, "Paul", "Smith", MALE, SINGLE, LocalDate.of(1990, 5, 20), "UK", "10 Downing St", "London", "paul.smith@bas.com", "+44 20 7946 0958", Collections.emptyList(), Map.of("contact_preferences", "email"));
         assertThat(customer).isPresent();
+        Customer expectedCustomer = new Customer(ID_SEQUENCE_START, "Paul", "Smith", MALE, SINGLE,
+                LocalDate.of(1990, 5, 20), "UK", "10 Downing St", "London", "paul.smith@bas.com", "+44 20 7946 0958",
+                Collections.emptyList(), Map.of("contact_preferences", "email"));
         assertThat(customer.get())
                 .usingRecursiveComparison()
                 .isEqualTo(expectedCustomer);
@@ -100,7 +102,7 @@ class CustomerRepositoryTest {
     @Order(4)
     void update_shouldModifyExistingCustomer() {
         // Arrange
-        Optional<Customer> existingCustomer = customerRepository.findById(10L);
+        Optional<Customer> existingCustomer = customerRepository.findById(ID_SEQUENCE_START);
         assertThat(existingCustomer).isPresent();
         Customer customerToUpdate = existingCustomer.get();
         customerToUpdate.setFirstName("Johnny");
@@ -120,16 +122,15 @@ class CustomerRepositoryTest {
     @Order(5)
     void deleteById_shouldRemoveCustomer_whenIdExists() {
         // Arrange
-        long customerId = 10L;
-        assertThat(customerRepository.findById(customerId)).isPresent();
+        assertThat(customerRepository.findById(ID_SEQUENCE_START)).isPresent();
 
         // Act
-        Optional<Customer> deletedCustomer = customerRepository.deleteById(customerId);
+        Optional<Customer> deletedCustomer = customerRepository.deleteById(ID_SEQUENCE_START);
 
         // Assert
         assertThat(deletedCustomer).isPresent();
         assertThat(deletedCustomer.get().getFirstName()).isEqualTo("Johnny");
-        assertThat(customerRepository.findById(customerId)).isNotPresent();
+        assertThat(customerRepository.findById(ID_SEQUENCE_START)).isNotPresent();
     }
 
     @Test

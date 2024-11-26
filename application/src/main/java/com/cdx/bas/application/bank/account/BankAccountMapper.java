@@ -50,6 +50,12 @@ public class BankAccountMapper implements DtoEntityMapper<BankAccount, BankAccou
                 .stream()
                 .map(transactionMapper::toDto)
                 .collect(Collectors.toSet()));
+
+        dto.setIncomingTransactions(entity.getIncomingTransactions()
+                .stream()
+                .map(transactionMapper::toDto)
+                .collect(Collectors.toSet()));
+
         return dto;
     }
 
@@ -81,6 +87,13 @@ public class BankAccountMapper implements DtoEntityMapper<BankAccount, BankAccou
             newIssuedTransactions.add(newIssuedTransactionEntity);
         }
         entity.setIssuedTransactions(newIssuedTransactions);
+
+        Set<TransactionEntity> newIncomingTransactions = new HashSet<>();
+        for (Transaction incomingTransaction : dto.getIncomingTransactions()) {
+            TransactionEntity newIssuedTransactionEntity = transactionMapper.toEntity(incomingTransaction);
+            newIssuedTransactions.add(newIssuedTransactionEntity);
+        }
+        entity.setIncomingTransactions(newIncomingTransactions);
         return entity;
     }
 }

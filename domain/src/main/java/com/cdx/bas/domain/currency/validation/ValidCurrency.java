@@ -1,8 +1,8 @@
 package com.cdx.bas.domain.currency.validation;
 
-import com.cdx.bas.domain.currency.validation.CurrencyValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
+
 import java.lang.annotation.*;
 
 @Target({ElementType.FIELD})

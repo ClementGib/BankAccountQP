@@ -2,10 +2,13 @@ package com.cdx.bas.application.bank.transaction;
 
 import com.cdx.bas.application.bank.account.BankAccountEntity;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
-import com.cdx.bas.domain.bank.transaction.type.TransactionType;
+import com.cdx.bas.domain.bank.transaction.category.digital.type.TransactionType;
+import com.cdx.bas.domain.testing.Generated;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.hypersistence.utils.hibernate.type.json.JsonStringType;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.Type;
 
@@ -13,6 +16,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Generated
 @Entity
 @Table(schema = "basapp", name = "transactions", uniqueConstraints = @UniqueConstraint(columnNames = "transaction_id"))
 @NamedQueries(@NamedQuery(
@@ -25,10 +32,14 @@ public class TransactionEntity extends PanacheEntityBase {
     @SequenceGenerator(name = "transactions_transaction_id_seq_gen", sequenceName = "transactions_transaction_id_seq", allocationSize = 1, initialValue = 1)
     private Long id;
 
+    @ToString.Exclude
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "emitter_account_id")
     private BankAccountEntity emitterBankAccountEntity;
 
+    @ToString.Exclude
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_account_id")
     private BankAccountEntity receiverBankAccountEntity;
@@ -58,97 +69,17 @@ public class TransactionEntity extends PanacheEntityBase {
     @ColumnTransformer(write = "?::jsonb")
     private String metadata;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public BankAccountEntity getEmitterBankAccountEntity() {
-        return emitterBankAccountEntity;
-    }
-
-    public void setEmitterBankAccountEntity(BankAccountEntity emitterBankAccountEntity) {
-        this.emitterBankAccountEntity = emitterBankAccountEntity;
-    }
-
-    public BankAccountEntity getReceiverBankAccountEntity() {
-        return receiverBankAccountEntity;
-    }
-
-    public void setReceiverBankAccountEntity(BankAccountEntity receiverBankAccountEntity) {
-        this.receiverBankAccountEntity = receiverBankAccountEntity;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public TransactionType getType() {
-        return type;
-    }
-
-    public void setType(TransactionType type) {
-        this.type = type;
-    }
-
-    public TransactionStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TransactionStatus status) {
-        this.status = status;
-    }
-
-    public Instant getDate() {
-        return date;
-    }
-
-    public void setDate(Instant date) {
-        this.date = date;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-    public String getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(String metadata) {
-        this.metadata = metadata;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TransactionEntity that = (TransactionEntity) o;
-        return Objects.equals(id, that.id)
-                && Objects.equals(emitterBankAccountEntity, that.emitterBankAccountEntity)
+        return Objects.equals(id, that.id) && Objects.equals(emitterBankAccountEntity, that.emitterBankAccountEntity)
                 && Objects.equals(receiverBankAccountEntity, that.receiverBankAccountEntity)
                 && Objects.equals(amount, that.amount)
                 && Objects.equals(currency, that.currency)
-                & type == that.type && status == that.status
+                && type == that.type
+                && status == that.status
                 && Objects.equals(date, that.date)
                 && Objects.equals(label, that.label)
                 && Objects.equals(metadata, that.metadata);

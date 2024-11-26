@@ -1,8 +1,8 @@
 package com.cdx.bas.domain.bank.transaction;
 
-import jakarta.transaction.Transactional;
+import com.cdx.bas.domain.bank.transaction.category.NewCashTransaction;
+import com.cdx.bas.domain.bank.transaction.category.NewDigitalTransaction;
 
-import java.util.Map;
 import java.util.Set;
 
 public interface TransactionServicePort {
@@ -18,17 +18,15 @@ public interface TransactionServicePort {
      * Create new transaction
      *
      * @param transaction to create
-     * @param metadata with detail about the transaction
      */
-    void create(Transaction transaction, Map<String, String> metadata);
+    void create(Transaction transaction);
 
     /**
      * Update existing transaction
      *
      * @param transaction to update
-     * @param metadata with detail about the transaction
      */
-    void update(Transaction transaction, Map<String, String> metadata);
+    void update(Transaction transaction);
 
 
     /**
@@ -56,7 +54,7 @@ public interface TransactionServicePort {
 
     /**
      * Process digital transaction
-     * 
+     *
      * @param digitalTransaction to process
      */
     void processDigitalTransaction(Transaction digitalTransaction);

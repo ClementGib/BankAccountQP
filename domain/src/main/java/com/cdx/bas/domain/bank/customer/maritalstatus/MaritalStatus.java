@@ -7,11 +7,11 @@ public enum MaritalStatus {
     DIVORCED('D'),
     PACS('P');
 
-    public final static char strSingle = 'S';
-    public final static char strMarried = 'M';
-    public final static char strWidowed = 'W';
-    public final static char strDivorced= 'D';
-    public final static char strPacs = 'P';
+    public static final char STR_SINGLE = 'S';
+    public static final char STR_MARRIED = 'M';
+    public static final char STR_WIDOWED = 'W';
+    public static final char STR_DIVORCED = 'D';
+    public static final char STR_PACS = 'P';
 
     private final char maritalCode;
 

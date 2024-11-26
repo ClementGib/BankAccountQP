@@ -5,6 +5,7 @@ import com.cdx.bas.domain.bank.transaction.Transaction;
 import java.util.Map;
 
 public interface TransactionStatusServicePort {
+
     /**
      * Set transaction to outstanding with additional metadata and avoid multiple process
      *

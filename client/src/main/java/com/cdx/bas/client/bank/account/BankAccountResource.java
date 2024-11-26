@@ -17,8 +17,12 @@ import java.util.List;
 @RequestScoped
 public class BankAccountResource implements BankAccountControllerPort {
 
-    @Inject
     BankAccountServicePort bankAccountServicePort;
+
+    @Inject
+    public BankAccountResource(BankAccountServicePort bankAccountServicePort) {
+        this.bankAccountServicePort = bankAccountServicePort;
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

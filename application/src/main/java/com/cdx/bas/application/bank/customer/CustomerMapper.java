@@ -19,11 +19,14 @@ import static com.cdx.bas.domain.message.CommonMessages.*;
 @RequestScoped
 public class CustomerMapper implements DtoEntityMapper<Customer, CustomerEntity> {
 
-    @Inject
     BankAccountMapper bankAccountMapper;
+    ObjectMapper objectMapper;
 
     @Inject
-    ObjectMapper objectMapper;
+    public CustomerMapper(ObjectMapper objectMapper, BankAccountMapper bankAccountMapper) {
+        this.objectMapper = objectMapper;
+        this.bankAccountMapper = bankAccountMapper;
+    }
 
     @Override
     public Customer toDto(CustomerEntity entity) {

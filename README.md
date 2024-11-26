@@ -147,6 +147,9 @@ quarkus dev -e
 
 *A la racine du projet*
 ```bash 
+# generate resources for test
+mvn process-test-resources 
+# run tests
 mvn test
 ```
 

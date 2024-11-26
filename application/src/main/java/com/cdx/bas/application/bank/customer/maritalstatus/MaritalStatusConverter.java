@@ -17,11 +17,11 @@ public class MaritalStatusConverter implements AttributeConverter<MaritalStatus,
             return null;  // Handle null maritalStatus by returning null
         }
         return switch (maritalStatus) {
-            case SINGLE -> strSingle;
-            case MARRIED -> strMarried;
-            case WIDOWED -> strWidowed;
-            case DIVORCED -> strDivorced;
-            case PACS -> strPacs;
+            case SINGLE -> STR_SINGLE;
+            case MARRIED -> STR_MARRIED;
+            case WIDOWED -> STR_WIDOWED;
+            case DIVORCED -> STR_DIVORCED;
+            case PACS -> STR_PACS;
         };
     }
 
@@ -31,11 +31,11 @@ public class MaritalStatusConverter implements AttributeConverter<MaritalStatus,
             return null;  // Handle null maritalCode by returning null
         }
         return switch (maritalCode) {
-            case strSingle -> SINGLE;
-            case strMarried -> MARRIED;
-            case strWidowed -> WIDOWED;
-            case strDivorced -> DIVORCED;
-            case strPacs -> PACS;
+            case STR_SINGLE -> SINGLE;
+            case STR_MARRIED -> MARRIED;
+            case STR_WIDOWED -> WIDOWED;
+            case STR_DIVORCED -> DIVORCED;
+            case STR_PACS -> PACS;
             default -> throw new IllegalStateException(ERROR_MARITAL_STATUS + maritalCode);
         };
     }
