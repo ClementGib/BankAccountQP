@@ -4,7 +4,7 @@
 <!-- README.md -->
 
 ## About
-| **Project info** | ![java](https://img.shields.io/badge/Java-100%25-red) ![Static Badge](https://img.shields.io/badge/Framework-Quarkus-blue) [![License](https://img.shields.io/badge/License-MIT-green)](https://github.com/ClementGib/BankAccountQuarkus/blob/develop/LICENSE) |
+| **Project info** | ![java version](https://img.shields.io/badge/Java_version-21-red) ![Static Badge](https://img.shields.io/badge/Framework-Quarkus-blue) [![License](https://img.shields.io/badge/License-MIT-green)](https://github.com/ClementGib/BankAccountQuarkus/blob/develop/LICENSE) |
 |------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Build Status** | ![branches.svg](.github%2Fbadges%2Fbranches.svg) ![jacoco.svg](.github%2Fbadges%2Fjacoco.svg)                                                                                                                                                                  |
 
