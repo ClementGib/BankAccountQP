@@ -4,10 +4,12 @@ import com.cdx.bas.application.bank.transaction.category.cash.type.deposit.Depos
 import com.cdx.bas.application.bank.transaction.category.cash.type.withdraw.WithdrawProcessorImpl;
 import com.cdx.bas.application.bank.transaction.category.digital.type.credit.CreditProcessorImpl;
 import com.cdx.bas.application.bank.transaction.category.digital.type.debit.DebitProcessorImpl;
+import com.cdx.bas.application.bank.transaction.consumer.TransactionConsumer;
 import com.cdx.bas.domain.bank.transaction.*;
 import com.cdx.bas.domain.bank.transaction.category.NewCashTransaction;
 import com.cdx.bas.domain.bank.transaction.category.NewDigitalTransaction;
 import com.cdx.bas.domain.bank.transaction.status.TransactionStatus;
+import com.cdx.bas.domain.consumer.Consumer;
 import com.cdx.bas.domain.message.CommonMessages;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -31,6 +33,7 @@ public class TransactionServiceImpl implements TransactionServicePort {
     private final DebitProcessorImpl debitProcessorService;
     private final DepositProcessorImpl depositProcessorService;
     private final WithdrawProcessorImpl withdrawProcessorService;
+    private final TransactionConsumer transactionConsumer;
 
     @Inject
     public TransactionServiceImpl(TransactionPersistencePort transactionRepository,
@@ -38,13 +41,15 @@ public class TransactionServiceImpl implements TransactionServicePort {
                                   CreditProcessorImpl creditProcessorService,
                                   DebitProcessorImpl debitProcessorService,
                                   DepositProcessorImpl depositProcessorService,
-                                  WithdrawProcessorImpl withdrawProcessorService) {
+                                  WithdrawProcessorImpl withdrawProcessorService,
+                                  TransactionConsumer transactionConsumer) {
         this.transactionRepository = transactionRepository;
         this.transactionValidator = transactionValidator;
         this.creditProcessorService = creditProcessorService;
         this.debitProcessorService = debitProcessorService;
         this.depositProcessorService = depositProcessorService;
         this.withdrawProcessorService = withdrawProcessorService;
+        this.transactionConsumer = transactionConsumer;
     }
 
     @Override
@@ -76,6 +81,7 @@ public class TransactionServiceImpl implements TransactionServicePort {
         Transaction digitalTransaction = TransactionUtils.getNewDigitalTransaction(newDigitalTransaction);
         transactionValidator.validateNewDigitalTransaction(digitalTransaction);
         transactionRepository.create(digitalTransaction);
+        transactionConsumer.add(digitalTransaction);
     }
 
     @Override
